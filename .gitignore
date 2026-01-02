@@ -80,3 +80,6 @@ data/indices/
 
 # Keep fixtures (synthetic test data IS public)
 !data/fixtures/
+
+# Virtual environment
+venv/

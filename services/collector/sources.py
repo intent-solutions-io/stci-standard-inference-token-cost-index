@@ -4,7 +4,7 @@ STCI Data Sources - Implementations for fetching pricing data.
 
 import json
 from abc import ABC, abstractmethod
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
@@ -87,7 +87,7 @@ class OpenRouterSource(BaseSource):
         models = data.get("data", [])
 
         observations = []
-        collected_at = datetime.utcnow().isoformat() + "Z"
+        collected_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
         for model in models:
             pricing = model.get("pricing", {})
@@ -183,7 +183,7 @@ class FixtureSource(BaseSource):
             observations = json.load(f)
 
         # Update dates in fixtures
-        collected_at = datetime.utcnow().isoformat() + "Z"
+        collected_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         for obs in observations:
             obs["effective_date"] = target_date.isoformat()
             obs["collected_at"] = collected_at
