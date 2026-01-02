@@ -67,3 +67,16 @@ temp/
 .beads/daemon.pid
 .beads/daemon.lock
 .beads/.local_version
+
+# Private data - NOT open-sourced (see 014-AT-ADEC-data-licensing-private.md)
+# Raw API responses from sources
+data/raw/
+
+# Normalized observations
+data/observations/
+
+# Computed indices (served via API, not repo)
+data/indices/
+
+# Keep fixtures (synthetic test data IS public)
+!data/fixtures/
