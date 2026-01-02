@@ -47,7 +47,7 @@
 
 - **STCI repository scaffolded** with enterprise-grade structure following 6767 Document Filing System v4.2
 - **Critical research completed** revealing OpenRouter API as primary data source (avoiding ToS violations from direct scraping)
-- **10 documentation artifacts** created covering PRD, ADR, specs, runbooks, research, and templates
+- **12 documentation artifacts** created covering PRD, ADRs, specs, runbooks, research, and templates
 - **Implementation stubs** for collector, indexer, and API services with deterministic methodology
 - **Beads initialized** with two epics (Build + Research) and dependency graph
 - **Claude Skill** created for repeatable data source onboarding
@@ -71,6 +71,7 @@
 | 009-DR-TMPL-source-profile.md | Source onboarding template |
 | 010-DR-SOPS-data-ops-practices.md | Data operations best practices |
 | 011-AA-AACR-scaffold-compliance.md | This AAR |
+| 012-AT-ADEC-openrouter-primary-source.md | ADR: OpenRouter as primary data source |
 
 ### Schemas Created
 
@@ -123,7 +124,7 @@ cd /home/jeremy/000-projects/stci
 
 # Check doc count
 ls 000-docs/ | wc -l
-# Expected: 11
+# Expected: 12
 
 # Validate JSON schemas
 python3 -c "import json; json.load(open('schemas/observation.schema.json'))"
@@ -195,7 +196,7 @@ print(json.dumps(result, indent=2))
 | File | Action | Purpose |
 |------|--------|---------|
 | README.md | created | Project overview |
-| 000-docs/* (11 files) | created | Documentation suite |
+| 000-docs/* (12 files) | created | Documentation suite |
 | schemas/* (2 files) | created | JSON schemas |
 | data/fixtures/* (2 files) | created | Sample data |
 | services/** | created | Implementation stubs |
