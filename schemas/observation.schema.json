@@ -1,0 +1,141 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://stci.io/schemas/observation.schema.json",
+  "title": "STCI Pricing Observation",
+  "description": "A single pricing data point for an LLM model at a specific time",
+  "type": "object",
+  "required": [
+    "observation_id",
+    "schema_version",
+    "provider",
+    "model_id",
+    "model_display_name",
+    "input_rate_usd_per_1m",
+    "output_rate_usd_per_1m",
+    "effective_date",
+    "collected_at",
+    "source_url",
+    "source_tier",
+    "currency",
+    "collection_method"
+  ],
+  "properties": {
+    "observation_id": {
+      "type": "string",
+      "description": "Unique identifier (format: obs-{date}-{provider}-{model})",
+      "pattern": "^obs-[0-9]{4}-[0-9]{2}-[0-9]{2}-.+$"
+    },
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version (semver)",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "provider": {
+      "type": "string",
+      "description": "Provider identifier (lowercase, no spaces)",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "model_id": {
+      "type": "string",
+      "description": "Provider's model identifier"
+    },
+    "model_display_name": {
+      "type": "string",
+      "description": "Human-readable model name"
+    },
+    "input_rate_usd_per_1m": {
+      "type": "number",
+      "description": "USD per 1 million input tokens",
+      "minimum": 0
+    },
+    "output_rate_usd_per_1m": {
+      "type": "number",
+      "description": "USD per 1 million output tokens",
+      "minimum": 0
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date pricing is effective (ISO 8601)"
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Collection timestamp (ISO 8601 UTC)"
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Source URL for pricing"
+    },
+    "source_tier": {
+      "type": "string",
+      "enum": ["T1", "T2", "T3", "T4"],
+      "description": "Data quality tier"
+    },
+    "currency": {
+      "type": "string",
+      "const": "USD",
+      "description": "Currency code (must be USD)"
+    },
+    "collection_method": {
+      "type": "string",
+      "enum": ["manual", "scrape", "api", "aggregator_api", "fixture"],
+      "description": "How data was collected"
+    },
+    "confidence_level": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "Data confidence level"
+    },
+    "context_window": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Maximum context window (tokens)"
+    },
+    "max_output_tokens": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Maximum output tokens per request"
+    },
+    "batch_rate_input": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Batch API input rate (USD per 1M tokens)"
+    },
+    "batch_rate_output": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Batch API output rate (USD per 1M tokens)"
+    },
+    "cached_rate_input": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Cached/prompt-caching input rate (USD per 1M tokens)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "carried_forward": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this observation was carried forward from previous day"
+    },
+    "carried_forward_days": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of days carried forward"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Manual verification timestamp"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Verifier identifier"
+    }
+  },
+  "additionalProperties": false
+}

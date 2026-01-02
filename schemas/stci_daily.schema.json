@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://stci.io/schemas/stci_daily.schema.json",
+  "title": "STCI Daily Index Output",
+  "description": "Aggregated reference rates for a given date",
+  "type": "object",
+  "required": [
+    "date",
+    "indices",
+    "methodology_version",
+    "computed_at",
+    "verification_hash"
+  ],
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date for this index (ISO 8601)"
+    },
+    "indices": {
+      "type": "object",
+      "description": "Index values by index name",
+      "additionalProperties": {
+        "$ref": "#/definitions/index_value"
+      }
+    },
+    "methodology_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Methodology version used for computation"
+    },
+    "computed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Computation timestamp (ISO 8601 UTC)"
+    },
+    "verification_hash": {
+      "type": "string",
+      "description": "SHA256 hash for verification (sorted observations + methodology)"
+    },
+    "observation_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total observations used"
+    },
+    "data_coverage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Fraction of expected models with data"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Any notes about this day's computation"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Warnings encountered during computation"
+    }
+  },
+  "definitions": {
+    "index_value": {
+      "type": "object",
+      "required": [
+        "input_rate",
+        "output_rate",
+        "blended_rate",
+        "model_count"
+      ],
+      "properties": {
+        "input_rate": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Weighted average input rate (USD per 1M tokens)"
+        },
+        "output_rate": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Weighted average output rate (USD per 1M tokens)"
+        },
+        "blended_rate": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Blended rate assuming 3:1 output:input ratio"
+        },
+        "model_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of models in this index"
+        },
+        "dispersion": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Standard deviation of rates (price spread indicator)"
+        },
+        "models_included": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of model IDs included in this index"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
