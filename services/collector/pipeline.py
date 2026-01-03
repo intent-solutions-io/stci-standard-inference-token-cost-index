@@ -229,7 +229,7 @@ class CollectionPipeline:
         Deduplicate observations, preferring official sources over aggregators.
 
         Priority:
-        1. T1 official (config_file collection_method)
+        1. T1 official (manual collection_method from verified pricing pages)
         2. T1 aggregator (aggregator_api collection_method)
         3. T2-T4 sources
         """
@@ -245,10 +245,10 @@ class CollectionPipeline:
         # Select best observation for each model
         deduped = []
         for normalized_id, obs_list in model_groups.items():
-            # Sort by priority: config_file > aggregator_api > others
+            # Sort by priority: manual (official) > aggregator_api > others
             def priority(obs):
                 method = obs.get("collection_method", "")
-                if method == "config_file":
+                if method == "manual":
                     return 0
                 elif method == "aggregator_api":
                     return 1

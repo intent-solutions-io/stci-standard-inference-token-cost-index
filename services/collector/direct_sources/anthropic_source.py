@@ -87,16 +87,13 @@ class AnthropicDirectSource(BaseSource):
                 "source_url": source_url,
                 "source_tier": self.source_tier,
                 "currency": "USD",
-                "collection_method": "config_file",
+                "collection_method": "manual",
                 "confidence_level": "high",
             }
 
             # Add optional fields if available
             if context_window := model_data.get("context_window"):
                 obs["context_window"] = context_window
-
-            if tier := model_data.get("tier"):
-                obs["model_tier"] = tier
 
             observations.append(obs)
 
