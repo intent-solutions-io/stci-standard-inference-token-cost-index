@@ -1,0 +1,16 @@
+[Unit]
+Description=STCI Daily Pipeline Timer
+Documentation=https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index
+
+[Timer]
+# Run daily at 00:30 UTC
+OnCalendar=*-*-* 00:30:00
+# Use UTC timezone
+AccuracySec=1min
+# Run immediately if we missed the last trigger (e.g., system was off)
+Persistent=true
+# Randomize start time by up to 5 minutes to avoid thundering herd
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

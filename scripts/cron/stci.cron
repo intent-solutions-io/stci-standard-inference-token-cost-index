@@ -1,0 +1,18 @@
+# STCI Daily Pipeline Cron Configuration
+#
+# Installation:
+#   sudo cp scripts/cron/stci.cron /etc/cron.d/stci
+#   sudo chmod 644 /etc/cron.d/stci
+#
+# Or add to user crontab:
+#   crontab -e
+#   # Then paste the line below (update path)
+#
+# Logs are written to: /home/jeremy/000-projects/stci/logs/
+
+# Run daily at 00:30 UTC (after OpenRouter updates)
+# Format: minute hour day month weekday user command
+30 0 * * * jeremy /home/jeremy/000-projects/stci/scripts/daily_pipeline.sh >> /home/jeremy/000-projects/stci/logs/cron.log 2>&1
+
+# Optional: Run API health check every 5 minutes (if API is running)
+# */5 * * * * jeremy curl -sf http://localhost:8000/health > /dev/null || echo "[$(date)] API unhealthy" >> /home/jeremy/000-projects/stci/logs/health.log

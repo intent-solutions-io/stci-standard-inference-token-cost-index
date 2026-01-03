@@ -1,0 +1,28 @@
+[Unit]
+Description=STCI Daily Pipeline - Collect and Index LLM Pricing
+Documentation=https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=jeremy
+Group=jeremy
+WorkingDirectory=/home/jeremy/000-projects/stci
+ExecStart=/home/jeremy/000-projects/stci/scripts/daily_pipeline.sh
+StandardOutput=append:/home/jeremy/000-projects/stci/logs/systemd.log
+StandardError=append:/home/jeremy/000-projects/stci/logs/systemd.log
+
+# Restart on failure with backoff
+Restart=on-failure
+RestartSec=300
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/jeremy/000-projects/stci/data /home/jeremy/000-projects/stci/logs
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

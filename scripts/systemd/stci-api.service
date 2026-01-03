@@ -1,0 +1,32 @@
+[Unit]
+Description=STCI API Server
+Documentation=https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jeremy
+Group=jeremy
+WorkingDirectory=/home/jeremy/000-projects/stci
+ExecStart=/home/jeremy/000-projects/stci/venv/bin/python -m services.api.main --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+
+# Logging
+StandardOutput=append:/home/jeremy/000-projects/stci/logs/api.log
+StandardError=append:/home/jeremy/000-projects/stci/logs/api.log
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/jeremy/000-projects/stci/logs
+ReadOnlyPaths=/home/jeremy/000-projects/stci/data
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
