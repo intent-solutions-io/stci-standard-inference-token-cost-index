@@ -8,6 +8,9 @@ pyyaml>=6.0
 # Cloud Storage (optional - for GCS backend)
 google-cloud-storage>=2.10.0
 
+# Firestore (for production database)
+google-cloud-firestore>=2.16.0
+
 # Validation
 jsonschema>=4.17.0
 
