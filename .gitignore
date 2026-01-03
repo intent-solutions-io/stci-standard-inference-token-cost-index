@@ -71,6 +71,9 @@ temp/
 # Raw API responses (large, not needed in repo)
 data/raw/
 
+# Firebase
+.firebase/
+
 # Virtual environment
 venv/
 logs/*.log

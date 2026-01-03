@@ -5,12 +5,25 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  PROJECT_ID: stci-production
+
+permissions:
+  contents: read
+  id-token: write  # Required for WIF
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/303527277450/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-actions@stci-production.iam.gserviceaccount.com
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,14 +44,19 @@ jobs:
           pip install -r requirements.txt -t lib
 
       - name: Deploy to Firebase
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          firebase deploy --token "$FIREBASE_TOKEN"
+          firebase deploy --project ${{ env.PROJECT_ID }}
+
+      - name: Get Hosting URL
+        id: hosting
+        run: |
+          URL=$(firebase hosting:channel:list --project ${{ env.PROJECT_ID }} --json 2>/dev/null | jq -r '.result[0].url // "https://stci-production.web.app"')
+          echo "url=$URL" >> $GITHUB_OUTPUT
 
       - name: Deployment summary
         run: |
           echo "## Firebase Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Hosting URL:** https://inferencepriceindex.com" >> $GITHUB_STEP_SUMMARY
-          echo "**API URL:** https://inferencepriceindex.com/v1/" >> $GITHUB_STEP_SUMMARY
+          echo "**Project:** ${{ env.PROJECT_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Hosting URL:** ${{ steps.hosting.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**API URL:** ${{ steps.hosting.outputs.url }}/v1/" >> $GITHUB_STEP_SUMMARY

@@ -1,5 +1,5 @@
 {
   "projects": {
-    "default": "inference-price-index"
+    "default": "stci-production"
   }
 }
