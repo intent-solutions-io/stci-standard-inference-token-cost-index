@@ -1,5 +1,9 @@
 # STCI — Standard Token Cost Index
 
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index/releases)
+[![Tests](https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index/actions/workflows/tests.yml/badge.svg)](https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **A public, vendor-neutral price index for LLM tokens.**
 
 STCI provides a transparent, reproducible reference rate for large language model token pricing, analogous to market indices like LIBOR or VIX. It aggregates published pricing from major model providers and aggregators, normalizes the data into a canonical schema, and computes daily reference rates with full provenance.
@@ -185,19 +189,19 @@ Default weighting for MVP:
 
 ---
 
-## Quickstart (MVP)
+## Quickstart
 
 ```bash
 # Clone the repository
-git clone https://github.com/jeremylongshore/stci.git
-cd stci
+git clone https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index.git
+cd stci-standard-llm-token-cost-index
 
 # Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # or `.venv\Scripts\activate` on Windows
+python -m venv venv
+source venv/bin/activate  # or `venv\Scripts\activate` on Windows
 
 # Install dependencies
-pip install -e .
+pip install -r requirements.txt
 
 # Run verification
 ./scripts/verify_repo.sh
@@ -205,8 +209,11 @@ pip install -e .
 # Run tests
 pytest
 
-# Compute index from fixtures
-python -m services.indexer.compute --date 2026-01-01 --fixtures
+# Run collection pipeline (from fixtures)
+python -m services.collector.pipeline --fixtures
+
+# Run indexing pipeline
+python -m services.indexer.pipeline --date 2026-01-02
 
 # Start API (development)
 python -m services.api.main
@@ -214,15 +221,16 @@ python -m services.api.main
 
 ---
 
-## API Endpoints (Planned)
+## API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/health` | GET | Health check |
 | `/v1/index/latest` | GET | Latest STCI values |
 | `/v1/index/{date}` | GET | Index for specific date |
+| `/v1/indices` | GET | List all available dates |
 | `/v1/observations/{date}` | GET | Raw observations for date |
-| `/v1/methodology` | GET | Current methodology doc |
+| `/v1/methodology` | GET | Current methodology config |
 
 ---
 
@@ -240,26 +248,29 @@ STCI is designed as a **reference rate product**. Trust is the moat:
 
 ## Roadmap
 
-### MVP (v0.1.0)
-- [ ] Schema definitions
-- [ ] Fixture-based indexer
-- [ ] Basic API stubs
-- [ ] Documentation suite
+### v0.1.0 (Current)
+- [x] Schema definitions (observation, daily index)
+- [x] OpenRouter collector pipeline
+- [x] Indexer with STCI-ALL, STCI-FRONTIER, STCI-EFFICIENT, STCI-OPEN
+- [x] Read-only API server
+- [x] Docker and Cloud Run deployment
+- [x] GitHub Actions CI/CD
+- [x] Comprehensive test suite
 
 ### v0.2.0
-- [ ] T1 collector for 5+ major providers
-- [ ] Daily automation
-- [ ] Historical backfill
+- [ ] Additional T1/T2 collectors (direct provider APIs)
+- [ ] Historical backfill tooling
+- [ ] Rate change alerts
 
 ### v0.3.0
-- [ ] Sub-indices implementation
 - [ ] Dashboard UI
-- [ ] Public API launch
+- [ ] Public API with authentication
+- [ ] Webhook notifications
 
 ### Future
-- [ ] Effective rate collection (aggregator pricing)
 - [ ] Usage-weighted indices
 - [ ] Enterprise data feeds
+- [ ] Multi-currency support
 
 ---
 
@@ -280,7 +291,7 @@ MIT License. See [LICENSE](./LICENSE).
 
 ## Contact
 
-- Repository: [github.com/jeremylongshore/stci](https://github.com/jeremylongshore/stci)
+- Repository: [github.com/intent-solutions-io/stci-standard-llm-token-cost-index](https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index)
 - Issues: Use GitHub Issues or Beads (`bd create`)
 
 ---
