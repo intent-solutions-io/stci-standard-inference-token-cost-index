@@ -11,12 +11,25 @@ on:
         required: false
         type: string
 
+env:
+  PROJECT_ID: stci-production
+
+permissions:
+  contents: write
+  id-token: write  # Required for WIF
+
 jobs:
   collect-and-index:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/303527277450/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-actions@stci-production.iam.gserviceaccount.com
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,9 +56,11 @@ jobs:
             echo "date=$(date -u +%Y-%m-%d)" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run collector
+      - name: Run multi-source collector
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          python -m services.collector.pipeline --date ${{ steps.date.outputs.date }}
+          python -m services.collector.pipeline --multi --date ${{ steps.date.outputs.date }}
 
       - name: Run indexer
         run: |
@@ -59,28 +74,23 @@ jobs:
           d = json.load(sys.stdin)
           print(f\"Date: {d['date']}\")
           print(f\"Observations: {d['observation_count']}\")
+          print(f\"Hash: {d['verification_hash']}\")
           for name, data in d['indices'].items():
               print(f\"  {name}: \${data['blended_rate']:.2f}/1M ({data['model_count']} models)\")
           "
 
       - name: Upload to Firestore
-        if: ${{ secrets.GCP_SA_KEY != '' }}
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GCP_SA_KEY }}
         run: |
-          # Write credentials to temp file
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/gcp-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json
-
-          python -c "
-          from services.storage.firestore import FirestoreStorage
+          python << 'EOF'
+          from google.cloud import firestore
           import json
 
-          storage = FirestoreStorage()
+          db = firestore.Client(project='stci-production')
 
           # Upload index
           with open('data/indices/${{ steps.date.outputs.date }}.json') as f:
-              storage.write_index('${{ steps.date.outputs.date }}', json.load(f))
+              index_data = json.load(f)
+              db.collection('indices').document('${{ steps.date.outputs.date }}').set(index_data)
           print('Uploaded index to Firestore')
 
           # Upload observations
@@ -88,12 +98,25 @@ jobs:
           with open('data/observations/${{ steps.date.outputs.date }}.jsonl') as f:
               for line in f:
                   observations.append(json.loads(line))
-          storage.write_observations('${{ steps.date.outputs.date }}', observations)
-          print(f'Uploaded {len(observations)} observations to Firestore')
-          "
 
-          # Clean up credentials
-          rm /tmp/gcp-key.json
+          db.collection('observations').document('${{ steps.date.outputs.date }}').set({
+              'date': '${{ steps.date.outputs.date }}',
+              'count': len(observations),
+              'items': observations
+          })
+          print(f'Uploaded {len(observations)} observations to Firestore')
+
+          # Update methodology
+          methodology = {
+              'version': '1.0.0',
+              'description': 'Standard Token Cost Index methodology',
+              'indices': ['STCI-ALL', 'STCI-FRONTIER', 'STCI-EFFICIENT', 'STCI-OPEN'],
+              'sources': ['openrouter', 'openai_direct', 'anthropic_direct', 'google_direct'],
+              'updated': '${{ steps.date.outputs.date }}'
+          }
+          db.collection('methodology').document('current').set(methodology)
+          print('Updated methodology')
+          EOF
 
       - name: Commit data
         run: |
@@ -113,3 +136,19 @@ jobs:
             data/indices/${{ steps.date.outputs.date }}.json
             data/observations/${{ steps.date.outputs.date }}.jsonl
           retention-days: 30
+
+      - name: Pipeline summary
+        run: |
+          echo "## Daily Pipeline Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** ${{ steps.date.outputs.date }}" >> $GITHUB_STEP_SUMMARY
+          echo "**API:** https://inferencepriceindex.com/v1/index/${{ steps.date.outputs.date }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat data/indices/${{ steps.date.outputs.date }}.json | python -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          print('| Index | Rate | Models |')
+          print('|-------|------|--------|')
+          for name, data in d['indices'].items():
+              print(f\"| {name} | \${data['blended_rate']:.2f}/1M | {data['model_count']} |\")
+          " >> $GITHUB_STEP_SUMMARY
