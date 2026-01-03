@@ -4,7 +4,7 @@ STCI Indexer - Computes daily reference rates from observations.
 
 import hashlib
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from statistics import mean, stdev
 from typing import Any, Dict, List, Optional
@@ -76,7 +76,7 @@ class Indexer:
             "date": target_date.isoformat(),
             "indices": indices,
             "methodology_version": self.methodology.get("methodology_version", "1.0.0"),
-            "computed_at": datetime.utcnow().isoformat() + "Z",
+            "computed_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             "verification_hash": verification_hash,
             "observation_count": len(observations),
         }
