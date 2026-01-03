@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inference Price Index</title>
+  <meta name="description" content="The standard benchmark for LLM token pricing. Track inference costs across OpenAI, Anthropic, Google, and more.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <h1>Inference Price Index</h1>
+      <p>The standard benchmark for LLM token pricing</p>
+    </header>
+
+    <section class="indices" id="indices">
+      <div class="index-card">
+        <h3>Frontier</h3>
+        <div class="value" id="frontier-value">--</div>
+        <div class="change" id="frontier-change"></div>
+      </div>
+      <div class="index-card">
+        <h3>Efficient</h3>
+        <div class="value" id="efficient-value">--</div>
+        <div class="change" id="efficient-change"></div>
+      </div>
+      <div class="index-card">
+        <h3>Open</h3>
+        <div class="value" id="open-value">--</div>
+        <div class="change" id="open-change"></div>
+      </div>
+    </section>
+
+    <p style="text-align: center; color: var(--text-muted);" id="updated">
+      Loading...
+    </p>
+
+    <section class="section">
+      <h2>What Is This?</h2>
+      <p>A vendor-neutral daily index tracking LLM inference costs across major providers.
+         We collect pricing from OpenAI, Anthropic, Google, and aggregators,
+         normalize to USD per million tokens, and compute weighted averages.</p>
+    </section>
+
+    <div class="links">
+      <a href="/docs.html">API Docs</a>
+      <a href="/v1/methodology">Methodology</a>
+      <a href="https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index">GitHub</a>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

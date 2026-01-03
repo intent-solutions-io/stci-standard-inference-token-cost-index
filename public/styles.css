@@ -1,0 +1,103 @@
+:root {
+  --bg: #0a0a0a;
+  --card: #1a1a1a;
+  --border: #333;
+  --text: #ffffff;
+  --text-muted: #888;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.hero {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  color: var(--text-muted);
+  font-size: 1.25rem;
+}
+
+.indices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin: 3rem 0;
+}
+
+.index-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.index-card h3 {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.index-card .value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.index-card .change {
+  font-size: 0.875rem;
+}
+
+.change.positive { color: var(--accent-green); }
+.change.negative { color: var(--accent-red); }
+
+.section {
+  margin: 4rem 0;
+}
+
+.section h2 {
+  margin-bottom: 1.5rem;
+}
+
+.links {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.links a {
+  color: var(--accent-green);
+  text-decoration: none;
+}
+
+.links a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .hero h1 { font-size: 2rem; }
+  .indices { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Index data - read-only public access
+    match /indices/{date} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Observations - read-only public access
+    match /observations/{date} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Methodology - read-only public access
+    match /methodology/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      { "source": "/v1/**", "function": "api" },
+      { "source": "/health", "function": "api" }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(json)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=60"
+          }
+        ]
+      }
+    ]
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "python311"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Documentation - Inference Price Index</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    pre {
+      background: var(--card);
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    code { color: var(--accent-green); }
+    .endpoint { margin: 2rem 0; }
+    .endpoint h3 { color: var(--accent-green); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>API Documentation</h1>
+    <p>Base URL: <code>https://inferencepriceindex.com</code></p>
+
+    <div class="endpoint">
+      <h3>GET /v1/index/latest</h3>
+      <p>Get the most recent index values.</p>
+      <pre>curl https://inferencepriceindex.com/v1/index/latest</pre>
+    </div>
+
+    <div class="endpoint">
+      <h3>GET /v1/index/{date}</h3>
+      <p>Get index for a specific date (YYYY-MM-DD).</p>
+      <pre>curl https://inferencepriceindex.com/v1/index/2026-01-03</pre>
+    </div>
+
+    <div class="endpoint">
+      <h3>GET /v1/indices</h3>
+      <p>List all available index dates.</p>
+      <pre>curl https://inferencepriceindex.com/v1/indices</pre>
+    </div>
+
+    <div class="endpoint">
+      <h3>GET /v1/observations/{date}</h3>
+      <p>Get raw pricing observations for a date.</p>
+      <pre>curl https://inferencepriceindex.com/v1/observations/2026-01-03</pre>
+    </div>
+
+    <div class="endpoint">
+      <h3>GET /v1/methodology</h3>
+      <p>Get current index methodology configuration.</p>
+      <pre>curl https://inferencepriceindex.com/v1/methodology</pre>
+    </div>
+
+    <div class="links">
+      <a href="/">Back to Index</a>
+    </div>
+  </div>
+</body>
+</html>

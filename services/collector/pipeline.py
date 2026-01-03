@@ -3,16 +3,19 @@
 STCI Collection Pipeline
 
 Orchestrates the full data collection workflow:
-1. Fetch raw data from sources
+1. Fetch raw data from multiple sources
 2. Store raw responses (immutable archive)
 3. Normalize to observations
 4. Validate against schema
-5. Store observations as JSONL
+5. Detect pricing drift across sources
+6. Deduplicate observations
+7. Store observations as JSONL
 
 Usage:
     python -m services.collector.pipeline
     python -m services.collector.pipeline --date 2026-01-01
     python -m services.collector.pipeline --fixtures  # Use test data
+    python -m services.collector.pipeline --multi     # Use all sources
 """
 
 import argparse
@@ -28,6 +31,18 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from services.collector.sources import OpenRouterSource, FixtureSource, BaseSource
+from services.collector.drift import detect_drift, normalize_model_id
+
+# Import direct sources (optional - may not be available yet)
+try:
+    from services.collector.direct_sources import (
+        OpenAIDirectSource,
+        AnthropicDirectSource,
+        GoogleDirectSource,
+    )
+    DIRECT_SOURCES_AVAILABLE = True
+except ImportError:
+    DIRECT_SOURCES_AVAILABLE = False
 
 # Optional: JSON Schema validation
 try:
@@ -119,6 +134,131 @@ class CollectionPipeline:
         print(f"Observations:   {obs_path}")
 
         return len(observations), len(valid_observations), obs_path
+
+    def run_multi(
+        self,
+        target_date: Optional[date] = None,
+        dry_run: bool = False,
+        drift_threshold: float = 0.05,
+    ) -> Tuple[int, int, Path]:
+        """
+        Run collection from multiple sources with drift detection.
+
+        Args:
+            target_date: Date to collect for (default: today UTC)
+            dry_run: If True, don't write files
+            drift_threshold: Maximum allowed price difference (default 5%)
+
+        Returns:
+            Tuple of (total_fetched, valid_count, observations_path)
+        """
+        target_date = target_date or date.today()
+
+        # Build source list
+        sources: List[BaseSource] = [OpenRouterSource()]
+        if DIRECT_SOURCES_AVAILABLE:
+            sources.extend([
+                OpenAIDirectSource(),
+                AnthropicDirectSource(),
+                GoogleDirectSource(),
+            ])
+
+        print(f"=== STCI Multi-Source Collection Pipeline ===")
+        print(f"Date: {target_date}")
+        print(f"Sources: {[s.source_id for s in sources]}")
+        print()
+
+        # Step 1: Fetch from all sources
+        print("[1/5] Fetching from all sources...")
+        all_observations = []
+        source_counts = {}
+
+        for source in sources:
+            try:
+                obs = source.fetch(target_date)
+                all_observations.extend(obs)
+                source_counts[source.source_id] = len(obs)
+                print(f"      {source.source_id}: {len(obs)} observations")
+            except Exception as e:
+                source_counts[source.source_id] = 0
+                print(f"      {source.source_id}: FAILED - {e}")
+
+        print(f"      Total: {len(all_observations)} observations")
+
+        # Step 2: Drift detection
+        print("[2/5] Detecting pricing drift...")
+        drift_report = detect_drift(all_observations, threshold=drift_threshold)
+        if drift_report.has_warnings:
+            print(f"      {drift_report.discrepancy_count} discrepancies found:")
+            for warning in drift_report.warnings[:5]:  # Show first 5
+                print(f"        DRIFT: {warning}")
+            if len(drift_report.warnings) > 5:
+                print(f"        ... and {len(drift_report.warnings) - 5} more")
+        else:
+            print("      No significant drift detected")
+
+        # Step 3: Deduplicate (prefer official over aggregator)
+        print("[3/5] Deduplicating observations...")
+        deduped = self._deduplicate_observations(all_observations)
+        print(f"      Deduplicated: {len(all_observations)} -> {len(deduped)}")
+
+        # Step 4: Validate observations
+        print("[4/5] Validating observations...")
+        valid_observations, invalid_count = self._validate_observations(deduped)
+        print(f"      Valid: {len(valid_observations)}, Invalid: {invalid_count}")
+
+        # Step 5: Store observations
+        print("[5/5] Storing observations...")
+        obs_path = self._store_observations(valid_observations, target_date, dry_run)
+        print(f"      Written to: {obs_path}")
+
+        # Summary
+        print()
+        print("=== Collection Complete ===")
+        print(f"Sources queried: {len(sources)}")
+        print(f"Total fetched:   {len(all_observations)}")
+        print(f"After dedup:     {len(deduped)}")
+        print(f"Valid stored:    {len(valid_observations)}")
+        print(f"Drift warnings:  {len(drift_report.warnings)}")
+        print(f"Observations:    {obs_path}")
+
+        return len(all_observations), len(valid_observations), obs_path
+
+    def _deduplicate_observations(self, observations: List[dict]) -> List[dict]:
+        """
+        Deduplicate observations, preferring official sources over aggregators.
+
+        Priority:
+        1. T1 official (config_file collection_method)
+        2. T1 aggregator (aggregator_api collection_method)
+        3. T2-T4 sources
+        """
+        # Group by normalized model ID
+        model_groups: dict[str, list[dict]] = {}
+        for obs in observations:
+            model_id = obs.get("model_id", "")
+            normalized = normalize_model_id(model_id)
+            if normalized not in model_groups:
+                model_groups[normalized] = []
+            model_groups[normalized].append(obs)
+
+        # Select best observation for each model
+        deduped = []
+        for normalized_id, obs_list in model_groups.items():
+            # Sort by priority: config_file > aggregator_api > others
+            def priority(obs):
+                method = obs.get("collection_method", "")
+                if method == "config_file":
+                    return 0
+                elif method == "aggregator_api":
+                    return 1
+                else:
+                    return 2
+
+            obs_list.sort(key=priority)
+            deduped.append(obs_list[0])
+
+        return deduped
 
     def _fetch_and_store_raw(
         self,
@@ -243,6 +383,9 @@ Examples:
     # Use fixture data for testing
     python -m services.collector.pipeline --fixtures
 
+    # Use all sources with drift detection
+    python -m services.collector.pipeline --multi
+
     # Dry run (no files written)
     python -m services.collector.pipeline --dry-run
         """,
@@ -259,6 +402,17 @@ Examples:
         help="Use fixture data instead of live API",
     )
     parser.add_argument(
+        "--multi",
+        action="store_true",
+        help="Use all available sources with drift detection",
+    )
+    parser.add_argument(
+        "--drift-threshold",
+        type=float,
+        default=0.05,
+        help="Maximum allowed price difference (default: 0.05 = 5%%)",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Don't write any files",
@@ -269,17 +423,24 @@ Examples:
     # Parse date
     target_date = date.fromisoformat(args.date) if args.date else date.today()
 
-    # Select source
-    source = FixtureSource() if args.fixtures else OpenRouterSource()
-
     # Run pipeline
     pipeline = CollectionPipeline()
     try:
-        total, valid, path = pipeline.run(
-            target_date=target_date,
-            source=source,
-            dry_run=args.dry_run,
-        )
+        if args.multi:
+            # Multi-source with drift detection
+            total, valid, path = pipeline.run_multi(
+                target_date=target_date,
+                dry_run=args.dry_run,
+                drift_threshold=args.drift_threshold,
+            )
+        else:
+            # Single source (legacy behavior)
+            source = FixtureSource() if args.fixtures else OpenRouterSource()
+            total, valid, path = pipeline.run(
+                target_date=target_date,
+                source=source,
+                dry_run=args.dry_run,
+            )
         sys.exit(0 if valid > 0 else 1)
     except Exception as e:
         print(f"ERROR: {e}", file=sys.stderr)
