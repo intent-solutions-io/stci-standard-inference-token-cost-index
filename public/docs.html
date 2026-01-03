@@ -4,57 +4,81 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>API Documentation - Inference Price Index</title>
+  <meta name="description" content="API documentation for the Inference Price Index. Access daily LLM token pricing data programmatically.">
   <link rel="stylesheet" href="styles.css">
-  <style>
-    pre {
-      background: var(--card);
-      padding: 1rem;
-      border-radius: 4px;
-      overflow-x: auto;
-    }
-    code { color: var(--accent-green); }
-    .endpoint { margin: 2rem 0; }
-    .endpoint h3 { color: var(--accent-green); }
-  </style>
 </head>
 <body>
   <div class="container">
-    <h1>API Documentation</h1>
-    <p>Base URL: <code>https://inferencepriceindex.com</code></p>
+    <header class="docs-header">
+      <h1>API Documentation</h1>
+      <p>Access daily LLM pricing data programmatically</p>
+      <p style="margin-top: 1rem;">Base URL: <code>https://inferencepriceindex.com</code></p>
+    </header>
 
-    <div class="endpoint">
+    <section class="endpoint">
       <h3>GET /v1/index/latest</h3>
-      <p>Get the most recent index values.</p>
-      <pre>curl https://inferencepriceindex.com/v1/index/latest</pre>
-    </div>
+      <p>Get the most recent index values for all tiers (Frontier, Efficient, Open).</p>
+      <pre><code>curl https://inferencepriceindex.com/v1/index/latest</code></pre>
+      <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted);">
+        Returns: JSON object containing index values, model counts, computation timestamp, and individual model rates.
+      </p>
+    </section>
 
-    <div class="endpoint">
+    <section class="endpoint">
       <h3>GET /v1/index/{date}</h3>
-      <p>Get index for a specific date (YYYY-MM-DD).</p>
-      <pre>curl https://inferencepriceindex.com/v1/index/2026-01-03</pre>
-    </div>
+      <p>Get index values for a specific date. Date format: YYYY-MM-DD.</p>
+      <pre><code>curl https://inferencepriceindex.com/v1/index/2026-01-03</code></pre>
+      <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted);">
+        Returns: JSON object with historical index data for the specified date.
+      </p>
+    </section>
 
-    <div class="endpoint">
+    <section class="endpoint">
       <h3>GET /v1/indices</h3>
-      <p>List all available index dates.</p>
-      <pre>curl https://inferencepriceindex.com/v1/indices</pre>
-    </div>
+      <p>List all available index dates in the system.</p>
+      <pre><code>curl https://inferencepriceindex.com/v1/indices</code></pre>
+      <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted);">
+        Returns: JSON array of available dates, useful for historical analysis.
+      </p>
+    </section>
 
-    <div class="endpoint">
+    <section class="endpoint">
       <h3>GET /v1/observations/{date}</h3>
-      <p>Get raw pricing observations for a date.</p>
-      <pre>curl https://inferencepriceindex.com/v1/observations/2026-01-03</pre>
-    </div>
+      <p>Get raw pricing observations for a specific date. Includes individual model pricing data.</p>
+      <pre><code>curl https://inferencepriceindex.com/v1/observations/2026-01-03</code></pre>
+      <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted);">
+        Returns: Detailed pricing observations for all tracked models on the specified date.
+      </p>
+    </section>
 
-    <div class="endpoint">
+    <section class="endpoint">
       <h3>GET /v1/methodology</h3>
-      <p>Get current index methodology configuration.</p>
-      <pre>curl https://inferencepriceindex.com/v1/methodology</pre>
-    </div>
+      <p>Get the current index methodology configuration. Explains how models are categorized and averaged.</p>
+      <pre><code>curl https://inferencepriceindex.com/v1/methodology</code></pre>
+      <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted);">
+        Returns: Methodology document describing tier definitions, calculation methods, and data sources.
+      </p>
+    </section>
+
+    <section class="section" style="margin-top: 4rem;">
+      <h2>Response Format</h2>
+      <p>All endpoints return JSON. Successful responses use HTTP 200. Errors return appropriate HTTP status codes with error messages.</p>
+    </section>
+
+    <section class="section">
+      <h2>Rate Limits</h2>
+      <p>No authentication required. Fair use policy applies. Please cache responses appropriately and avoid excessive requests.</p>
+    </section>
 
     <div class="links">
       <a href="/">Back to Index</a>
+      <a href="/v1/methodology">Methodology</a>
+      <a href="https://github.com/intent-solutions-io/stci-standard-inference-token-cost-index" target="_blank" rel="noopener noreferrer">GitHub</a>
     </div>
+
+    <footer class="footer">
+      <p>Data collected daily from official pricing pages. Not financial advice.</p>
+    </footer>
   </div>
 </body>
 </html>
