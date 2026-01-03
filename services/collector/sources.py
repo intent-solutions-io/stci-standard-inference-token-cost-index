@@ -90,7 +90,7 @@ class OpenRouterSource(BaseSource):
         collected_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
         for model in models:
-            pricing = model.get("pricing", {})
+            pricing = model.get("pricing") or {}
 
             # Skip models without pricing
             prompt_rate = pricing.get("prompt")

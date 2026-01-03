@@ -12,6 +12,7 @@ jsonschema>=4.17.0
 # fastapi>=0.100.0
 # uvicorn>=0.22.0
 
-# Development
-# pytest>=7.0.0
-# pytest-cov>=4.0.0
+# Development / Testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+responses>=0.23.0
