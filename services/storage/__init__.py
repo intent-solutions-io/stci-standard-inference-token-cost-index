@@ -30,14 +30,17 @@ def get_storage_backend() -> StorageBackend:
     """
     Factory function to get appropriate storage backend.
 
-    Uses GCS if GCS_BUCKET environment variable is set,
-    otherwise falls back to local filesystem.
+    Priority:
+    1. Firestore if USE_FIRESTORE is set
+    2. GCS if GCS_BUCKET is set
+    3. Local filesystem (default)
     """
-    gcs_bucket = os.environ.get("GCS_BUCKET")
-
-    if gcs_bucket:
+    if os.environ.get("USE_FIRESTORE"):
+        from .firestore import FirestoreStorage
+        return FirestoreStorage()
+    elif os.environ.get("GCS_BUCKET"):
         from .gcs import GCSStorage
-        return GCSStorage(gcs_bucket)
+        return GCSStorage(os.environ["GCS_BUCKET"])
     else:
         from .local import LocalStorage
         return LocalStorage()

@@ -1,0 +1,51 @@
+# Google Gemini Official Pricing
+# Source: https://cloud.google.com/vertex-ai/generative-ai/pricing
+# Last verified: 2026-01-03
+# Rates in USD per 1 million tokens
+
+version: "2026-01-03"
+source_url: "https://cloud.google.com/vertex-ai/generative-ai/pricing"
+provider: "google"
+
+models:
+  gemini-2.0-flash:
+    input_rate: 0.10
+    output_rate: 0.40
+    context_window: 1000000
+    tier: "efficient"
+
+  gemini-2.0-flash-lite:
+    input_rate: 0.075
+    output_rate: 0.30
+    context_window: 1000000
+    tier: "efficient"
+
+  gemini-2.5-pro:
+    input_rate: 1.25
+    output_rate: 10.00
+    context_window: 2000000
+    tier: "frontier"
+
+  gemini-2.5-flash:
+    input_rate: 0.175
+    output_rate: 0.75
+    context_window: 1000000
+    tier: "efficient"
+
+  gemini-1.5-pro:
+    input_rate: 1.25
+    output_rate: 5.00
+    context_window: 2000000
+    tier: "frontier"
+
+  gemini-1.5-flash:
+    input_rate: 0.075
+    output_rate: 0.30
+    context_window: 1000000
+    tier: "efficient"
+
+  gemini-1.5-flash-8b:
+    input_rate: 0.0375
+    output_rate: 0.15
+    context_window: 1000000
+    tier: "efficient"

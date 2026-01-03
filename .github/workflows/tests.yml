@@ -81,6 +81,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install PyYAML
+        run: pip install pyyaml
+
       - name: Validate JSON schemas
         run: |
           python -c "import json; json.load(open('schemas/observation.schema.json'))"
@@ -91,4 +94,7 @@ jobs:
         run: |
           python -c "import json; json.load(open('data/fixtures/observations.sample.json'))"
           python -c "import yaml; yaml.safe_load(open('data/fixtures/methodology.yaml'))"
+          python -c "import yaml; yaml.safe_load(open('data/fixtures/openai_pricing.yaml'))"
+          python -c "import yaml; yaml.safe_load(open('data/fixtures/anthropic_pricing.yaml'))"
+          python -c "import yaml; yaml.safe_load(open('data/fixtures/google_pricing.yaml'))"
           echo "✓ All fixtures valid"

@@ -1,0 +1,51 @@
+# OpenAI Official Pricing
+# Source: https://openai.com/api/pricing/
+# Last verified: 2026-01-03
+# Rates in USD per 1 million tokens
+
+version: "2026-01-03"
+source_url: "https://openai.com/api/pricing/"
+provider: "openai"
+
+models:
+  gpt-4o:
+    input_rate: 2.50
+    output_rate: 10.00
+    context_window: 128000
+    tier: "frontier"
+
+  gpt-4o-mini:
+    input_rate: 0.15
+    output_rate: 0.60
+    context_window: 128000
+    tier: "efficient"
+
+  gpt-4-turbo:
+    input_rate: 10.00
+    output_rate: 30.00
+    context_window: 128000
+    tier: "frontier"
+
+  o1:
+    input_rate: 15.00
+    output_rate: 60.00
+    context_window: 200000
+    tier: "frontier"
+
+  o1-mini:
+    input_rate: 3.00
+    output_rate: 12.00
+    context_window: 128000
+    tier: "efficient"
+
+  o3-mini:
+    input_rate: 1.10
+    output_rate: 4.40
+    context_window: 200000
+    tier: "efficient"
+
+  gpt-3.5-turbo:
+    input_rate: 0.50
+    output_rate: 1.50
+    context_window: 16385
+    tier: "efficient"

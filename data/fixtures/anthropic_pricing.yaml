@@ -1,0 +1,63 @@
+# Anthropic Official Pricing
+# Source: https://www.anthropic.com/pricing
+# Last verified: 2026-01-03
+# Rates in USD per 1 million tokens
+
+version: "2026-01-03"
+source_url: "https://www.anthropic.com/pricing"
+provider: "anthropic"
+
+models:
+  claude-opus-4:
+    input_rate: 15.00
+    output_rate: 75.00
+    context_window: 200000
+    tier: "frontier"
+
+  claude-opus-4.5:
+    input_rate: 5.00
+    output_rate: 25.00
+    context_window: 200000
+    tier: "frontier"
+
+  claude-sonnet-4:
+    input_rate: 3.00
+    output_rate: 15.00
+    context_window: 200000
+    tier: "frontier"
+
+  claude-sonnet-4.5:
+    input_rate: 3.00
+    output_rate: 15.00
+    context_window: 200000
+    tier: "frontier"
+
+  claude-haiku-4:
+    input_rate: 0.25
+    output_rate: 1.25
+    context_window: 200000
+    tier: "efficient"
+
+  claude-haiku-4.5:
+    input_rate: 1.00
+    output_rate: 5.00
+    context_window: 200000
+    tier: "efficient"
+
+  claude-3.5-sonnet:
+    input_rate: 3.00
+    output_rate: 15.00
+    context_window: 200000
+    tier: "frontier"
+
+  claude-3-opus:
+    input_rate: 15.00
+    output_rate: 75.00
+    context_window: 200000
+    tier: "frontier"
+
+  claude-3-haiku:
+    input_rate: 0.25
+    output_rate: 1.25
+    context_window: 200000
+    tier: "efficient"

@@ -63,6 +63,38 @@ jobs:
               print(f\"  {name}: \${data['blended_rate']:.2f}/1M ({data['model_count']} models)\")
           "
 
+      - name: Upload to Firestore
+        if: ${{ secrets.GCP_SA_KEY != '' }}
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          # Write credentials to temp file
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/gcp-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json
+
+          python -c "
+          from services.storage.firestore import FirestoreStorage
+          import json
+
+          storage = FirestoreStorage()
+
+          # Upload index
+          with open('data/indices/${{ steps.date.outputs.date }}.json') as f:
+              storage.write_index('${{ steps.date.outputs.date }}', json.load(f))
+          print('Uploaded index to Firestore')
+
+          # Upload observations
+          observations = []
+          with open('data/observations/${{ steps.date.outputs.date }}.jsonl') as f:
+              for line in f:
+                  observations.append(json.loads(line))
+          storage.write_observations('${{ steps.date.outputs.date }}', observations)
+          print(f'Uploaded {len(observations)} observations to Firestore')
+          "
+
+          # Clean up credentials
+          rm /tmp/gcp-key.json
+
       - name: Commit data
         run: |
           git config user.name "github-actions[bot]"
