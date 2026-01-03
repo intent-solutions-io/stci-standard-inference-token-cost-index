@@ -1,0 +1,37 @@
+# STCI Docker Compose - Local Development
+# Usage:
+#   docker compose up api          - Run API server
+#   docker compose run pipeline    - Run collector + indexer
+#   docker compose up              - Run API (default)
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount data directory for persistence
+      - ./data:/app/data:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile.pipeline
+    volumes:
+      # Mount data directory for output
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Run once and exit (not a persistent service)
+    profiles:
+      - pipeline

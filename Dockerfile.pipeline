@@ -1,0 +1,26 @@
+# STCI Pipeline (Collector + Indexer)
+# For running scheduled data collection
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY services/ ./services/
+COPY schemas/ ./schemas/
+COPY data/fixtures/ ./data/fixtures/
+COPY scripts/daily_pipeline.sh ./scripts/
+
+# Create data directories
+RUN mkdir -p data/raw/openrouter data/observations data/indices logs
+
+# Environment
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Default: run daily pipeline for today
+CMD ["python", "-m", "services.collector.pipeline"]

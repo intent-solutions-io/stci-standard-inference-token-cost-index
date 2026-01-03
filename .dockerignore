@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+ENV/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation
+000-docs/
+*.md
+!README.md
+
+# Tests (not needed in production)
+tests/
+
+# Scripts (not needed in container)
+scripts/cron/
+scripts/systemd/
+
+# Local data (mounted as volume instead)
+data/raw/
+data/observations/
+data/indices/
+logs/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
