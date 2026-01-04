@@ -1,6 +1,6 @@
 {
   "name": "inference-price-index",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "Daily benchmark for LLM token pricing",
   "private": true,
   "scripts": {

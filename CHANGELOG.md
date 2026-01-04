@@ -5,6 +5,59 @@ All notable changes to STCI (Standard Token Cost Index) will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-01-04
+
+### Added
+
+- **Pricing Intelligence Center** (`/intelligence.html`) - comprehensive LLM pricing analysis tool:
+  - Historical pricing timeline with 19 curated events from major providers
+  - Price velocity chart powered by Chart.js with linear/log scale toggle
+  - Multiplicative savings calculator (quick, advanced, and contract benchmark modes)
+  - Live market snapshot from daily index API
+  - Evidence-backed data with source links and confidence levels
+  - Cost optimization features explainer (caching, batching, routing)
+  - Methodology and verification documentation
+  - Email subscription form with honeypot protection
+
+- **Testing Infrastructure**:
+  - Playwright smoke test suite with 19 tests covering all major features
+  - GitHub Actions CI pipeline with three jobs:
+    - Data validation (JSON Schema + business rules)
+    - E2E tests (Playwright)
+    - Lighthouse audits with score thresholds
+
+- **Build-Time Validation**:
+  - JSON Schema validation for pricing events data
+  - Business rules validation (duplicate IDs, severity rubric, HTTPS sources)
+  - JSON-LD generation for SEO structured data
+
+- **Legal Pages**:
+  - Privacy policy (`/privacy.html`)
+  - Terms of service (`/terms.html`)
+
+### Changed
+
+- Improved accessibility score from 84 to 97:
+  - Fixed color contrast on hero stat labels
+  - Corrected heading hierarchy (h4 → h3)
+  - Added form labels and ARIA attributes
+  - Added main landmark element
+
+- Enhanced landing page UI/UX with better spacing and tier explanations
+
+### Fixed
+
+- Firestore initialization for Firebase Functions
+- Python venv creation for Firebase Functions deployment
+- Landing page comparison spacing and data loading
+- Production URL in deploy summary
+
+### Security
+
+- All source URLs require HTTPS for high-confidence events
+- Honeypot field for bot protection on subscription form
+- CSP-ready with vendored dependencies (no CDN)
+
 ## [0.1.0] - 2026-01-02
 
 ### Added
@@ -37,4 +90,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 *STCI — Making LLM pricing transparent, reproducible, and trustworthy.*
 
-[0.1.0]: https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index/releases/tag/v0.1.0
+[0.2.0]: https://github.com/intent-solutions-io/stci-standard-inference-token-cost-index/releases/tag/v0.2.0
+[0.1.0]: https://github.com/intent-solutions-io/stci-standard-inference-token-cost-index/releases/tag/v0.1.0
