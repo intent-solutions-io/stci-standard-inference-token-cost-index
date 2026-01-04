@@ -229,24 +229,15 @@
 
   <script>
     // Normalize model IDs for matching across sources
+    // NOTE: This must stay in sync with tests/test_comparison.py::normalize_model_id
     function normalizeModelId(modelId) {
       if (!modelId) return '';
 
       // Remove provider prefix (e.g., "openai/gpt-4o" -> "gpt-4o")
       let normalized = modelId.includes('/') ? modelId.split('/').pop() : modelId;
 
-      // Remove date suffixes (e.g., "gpt-4o-2024-11-20" -> "gpt-4o")
-      normalized = normalized.replace(/-\d{4}-\d{2}-\d{2}$/, '');
-
-      // Remove common suffixes that don't affect base model identity
-      // NOTE: Do NOT remove :extended - it's a different product with different pricing
-      normalized = normalized.replace(/:thinking$/, '');
-      normalized = normalized.replace(/-preview$/, '');
-      normalized = normalized.replace(/-001$/, '');
-
-      // Normalize known aliases (same model, different naming)
-      // NOTE: Do NOT alias different context sizes (16k) or variants (extended)
-      // as they have different pricing
+      // Check aliases FIRST before stripping suffixes
+      // This handles cases like 'gpt-4-1106-preview' correctly
       const aliases = {
         'gpt-4-turbo-preview': 'gpt-4-turbo',
         'gpt-4-1106-preview': 'gpt-4-turbo',
@@ -257,8 +248,18 @@
       };
 
       if (aliases[normalized]) {
-        normalized = aliases[normalized];
+        return aliases[normalized].toLowerCase();
       }
+
+      // Remove date suffixes: YYYY-MM-DD or YYYYMMDD
+      normalized = normalized.replace(/-\d{4}-\d{2}-\d{2}$/, '');
+      normalized = normalized.replace(/-\d{8}$/, '');
+
+      // Remove common suffixes that don't affect base model identity
+      // NOTE: Do NOT remove :extended - it's a different product with different pricing
+      normalized = normalized.replace(/:thinking$/, '');
+      normalized = normalized.replace(/-preview$/, '');
+      normalized = normalized.replace(/-001$/, '');
 
       return normalized.toLowerCase();
     }
