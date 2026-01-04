@@ -253,7 +253,7 @@ STCI is designed as a **reference rate product**. Trust is the moat:
 - [x] OpenRouter collector pipeline
 - [x] Indexer with STCI-ALL, STCI-FRONTIER, STCI-EFFICIENT, STCI-OPEN
 - [x] Read-only API server
-- [x] Docker and Cloud Run deployment
+- [x] Firebase Hosting + Functions deployment
 - [x] GitHub Actions CI/CD
 - [x] Comprehensive test suite
 
