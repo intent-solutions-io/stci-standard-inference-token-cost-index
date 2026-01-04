@@ -19,7 +19,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install requests pytest
+        run: pip install requests pytest pyyaml
 
       - name: Run comparison tests
         run: python -m pytest tests/test_comparison.py -v
