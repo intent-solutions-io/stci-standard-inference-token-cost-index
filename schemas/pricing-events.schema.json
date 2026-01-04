@@ -1,0 +1,189 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://inferencepriceindex.com/schemas/pricing-events.schema.json",
+  "title": "LLM Pricing Events Schema",
+  "description": "Schema for historical LLM pricing events data",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "dataSource", "events"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Schema version in semver major.minor format"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when this file was generated"
+    },
+    "dataSource": {
+      "type": "string",
+      "enum": ["manual_curation_with_verification", "automated_collection", "mixed"],
+      "description": "How this data was collected"
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Array of pricing events",
+      "items": {
+        "$ref": "#/definitions/pricingEvent"
+      }
+    }
+  },
+  "definitions": {
+    "pricingEvent": {
+      "type": "object",
+      "required": [
+        "id",
+        "date",
+        "provider",
+        "type",
+        "severity",
+        "headline",
+        "description",
+        "sourceUrl",
+        "verifiedAt",
+        "confidence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Unique kebab-case identifier, typically date-provider-action",
+          "examples": ["2023-03-14-openai-gpt4-launch"]
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "Event date in YYYY-MM-DD format"
+        },
+        "provider": {
+          "type": "string",
+          "enum": ["OpenAI", "Anthropic", "Google", "xAI", "DeepSeek", "Cohere", "Mistral", "Meta", "Amazon"],
+          "description": "Model provider name"
+        },
+        "model": {
+          "type": ["string", "null"],
+          "description": "Specific model name (e.g., 'GPT-4', 'Claude 3 Opus')"
+        },
+        "modelFamily": {
+          "type": "string",
+          "enum": ["gpt-4", "gpt-4o", "gpt-3.5", "o1", "o3", "claude-3", "claude-3.5", "claude-4", "gemini-1.5", "gemini-2", "deepseek-v3", "deepseek-r1", "llama", "command", "mistral", "grok", "nova", "other"],
+          "description": "Model family for grouping in charts"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["new_model", "price_drop", "price_increase", "structural", "deprecation"],
+          "description": "Type of pricing event"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"],
+          "description": "Impact severity per deterministic rubric"
+        },
+        "headline": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 100,
+          "description": "Short headline for the event"
+        },
+        "oldPrice": {
+          "oneOf": [
+            { "$ref": "#/definitions/pricePoint" },
+            { "type": "null" }
+          ],
+          "description": "Previous price (null for new models)"
+        },
+        "newPrice": {
+          "oneOf": [
+            { "$ref": "#/definitions/pricePoint" },
+            { "type": "null" }
+          ],
+          "description": "New price after event (null for deprecations)"
+        },
+        "change": {
+          "oneOf": [
+            { "$ref": "#/definitions/changePercent" },
+            { "type": "null" }
+          ],
+          "description": "Percentage change (null for new models/deprecations)"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 500,
+          "description": "Detailed description of the event"
+        },
+        "impact": {
+          "type": ["string", "null"],
+          "maxLength": 300,
+          "description": "Market impact analysis"
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://",
+          "description": "Official source URL (must be HTTPS for high confidence)"
+        },
+        "verifiedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this event was last verified"
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low"],
+          "description": "Data confidence level"
+        },
+        "notes": {
+          "type": ["string", "null"],
+          "maxLength": 300,
+          "description": "Optional caveats or additional context"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "uniqueItems": true,
+          "description": "Searchable tags for filtering"
+        }
+      }
+    },
+    "pricePoint": {
+      "type": "object",
+      "required": ["input", "output"],
+      "additionalProperties": false,
+      "properties": {
+        "input": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Input token price per 1M tokens in USD"
+        },
+        "output": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Output token price per 1M tokens in USD"
+        }
+      }
+    },
+    "changePercent": {
+      "type": "object",
+      "required": ["input", "output"],
+      "additionalProperties": false,
+      "properties": {
+        "input": {
+          "type": "number",
+          "description": "Input price change as decimal (e.g., -0.50 for 50% drop)"
+        },
+        "output": {
+          "type": "number",
+          "description": "Output price change as decimal"
+        }
+      }
+    }
+  }
+}

@@ -74,6 +74,9 @@ data/raw/
 # Firebase
 .firebase/
 
+# Node.js
+node_modules/
+
 # Virtual environment
 venv/
 logs/*.log

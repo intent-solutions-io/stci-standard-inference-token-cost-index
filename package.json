@@ -1,0 +1,42 @@
+{
+  "name": "inference-price-index",
+  "version": "1.0.0",
+  "description": "Daily benchmark for LLM token pricing",
+  "private": true,
+  "scripts": {
+    "validate": "node scripts/validate-events.js",
+    "generate:jsonld": "node scripts/generate-jsonld.js",
+    "prebuild": "npm run validate && npm run generate:jsonld",
+    "build": "echo 'Static site - no build step needed'",
+    "predeploy": "npm run validate && npm run generate:jsonld",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:functions": "firebase deploy --only functions",
+    "test": "npm run validate",
+    "test:e2e": "playwright test",
+    "test:lighthouse": "lhci autorun"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "llm",
+    "api",
+    "pricing",
+    "gpt-4",
+    "claude",
+    "gemini",
+    "inference"
+  ],
+  "author": "Intent Solutions",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/intent-solutions-io/stci-standard-inference-token-cost-index.git"
+  }
+}

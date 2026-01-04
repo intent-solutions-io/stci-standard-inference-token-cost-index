@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM Pricing Intelligence Center - Inference Price Index</title>
+  <meta name="description" content="Track LLM API pricing history, calculate savings with our multiplicative calculator, and analyze market trends. Evidence-backed data from OpenAI, Anthropic, Google, and more.">
+  <meta name="keywords" content="LLM pricing, GPT-4 cost, Claude pricing, Gemini API, AI costs, token pricing, inference costs">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="LLM Pricing Intelligence Center">
+  <meta property="og:description" content="Track pricing history, calculate savings, and analyze LLM API cost trends across major providers.">
+  <meta property="og:url" content="https://inferencepriceindex.com/intelligence.html">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LLM Pricing Intelligence Center">
+  <meta name="twitter:description" content="Evidence-backed LLM pricing history and savings calculator.">
+
+  <link rel="canonical" href="https://inferencepriceindex.com/intelligence.html">
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- JSON-LD (generated at build time) -->
+  <script type="application/ld+json" id="jsonld-data"></script>
+</head>
+<body>
+  <div class="container intel-container">
+    <!-- Hero Section -->
+    <header class="hero intel-hero">
+      <h1>Pricing Intelligence Center</h1>
+      <p class="hero-subtitle">Evidence-backed LLM pricing history &amp; analysis</p>
+
+      <div class="intel-hero-stats" id="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-value" id="stat-events">--</span>
+          <span class="hero-stat-label">Pricing Events</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-value" id="stat-timespan">--</span>
+          <span class="hero-stat-label">Months Tracked</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-value" id="stat-deflation">--</span>
+          <span class="hero-stat-label">Avg. Price Drop</span>
+        </div>
+      </div>
+
+      <div class="intel-hero-ctas">
+        <a href="#timeline" class="btn btn-primary">Explore Timeline</a>
+        <a href="#calculator" class="btn btn-secondary">Calculate Savings</a>
+      </div>
+    </header>
+
+    <!-- Summary Stats Cards -->
+    <section class="section intel-summary" id="summary">
+      <div class="intel-stats-grid">
+        <div class="intel-stat-card" data-tooltip="Number of significant pricing changes tracked">
+          <div class="intel-stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="intel-stat-value" id="stat-total-events">--</div>
+          <div class="intel-stat-label">Total Events</div>
+        </div>
+        <div class="intel-stat-card" data-tooltip="Price reductions across all providers">
+          <div class="intel-stat-icon positive">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          </div>
+          <div class="intel-stat-value positive" id="stat-price-drops">--</div>
+          <div class="intel-stat-label">Price Drops</div>
+        </div>
+        <div class="intel-stat-card" data-tooltip="New model launches with pricing">
+          <div class="intel-stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          </div>
+          <div class="intel-stat-value" id="stat-new-models">--</div>
+          <div class="intel-stat-label">New Models</div>
+        </div>
+        <div class="intel-stat-card" data-tooltip="Providers with tracked pricing">
+          <div class="intel-stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="intel-stat-value" id="stat-providers">--</div>
+          <div class="intel-stat-label">Providers</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Price Velocity Chart -->
+    <section class="section intel-chart-section" id="chart">
+      <h2>Price Velocity Chart</h2>
+      <p>Track how LLM API prices have evolved over time. Click any data point to jump to that event.</p>
+
+      <div class="intel-chart-controls">
+        <div class="intel-chart-toggle">
+          <button class="chart-scale-btn active" data-scale="linear">Linear</button>
+          <button class="chart-scale-btn" data-scale="logarithmic">Log</button>
+        </div>
+        <div class="intel-chart-legend" id="chart-legend"></div>
+        <button class="btn-text" id="show-data-table" aria-expanded="false">
+          Show Data Table
+        </button>
+      </div>
+
+      <div class="intel-chart-wrapper">
+        <canvas id="price-chart" aria-label="LLM API Price History Chart"></canvas>
+      </div>
+
+      <div class="intel-data-table-wrapper" id="data-table-wrapper" hidden>
+        <table class="intel-data-table" id="price-data-table">
+          <caption>LLM API Pricing Data ($/Million Tokens)</caption>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Provider</th>
+              <th>Model</th>
+              <th>Input Price</th>
+              <th>Output Price</th>
+            </tr>
+          </thead>
+          <tbody id="price-data-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Interactive Timeline -->
+    <section class="section intel-timeline-section" id="timeline">
+      <h2>Pricing Event Timeline</h2>
+      <p>Complete history of LLM pricing changes with evidence and sources.</p>
+
+      <!-- Sticky Filter Bar -->
+      <div class="intel-filter-bar" id="filter-bar">
+        <div class="intel-filter-group">
+          <label for="filter-provider">Provider</label>
+          <select id="filter-provider" class="intel-filter-select">
+            <option value="">All Providers</option>
+          </select>
+        </div>
+        <div class="intel-filter-group">
+          <label for="filter-type">Type</label>
+          <select id="filter-type" class="intel-filter-select">
+            <option value="">All Types</option>
+            <option value="new_model">New Model</option>
+            <option value="price_drop">Price Drop</option>
+            <option value="price_increase">Price Increase</option>
+            <option value="structural">Structural</option>
+          </select>
+        </div>
+        <div class="intel-filter-group">
+          <label for="filter-severity">Severity</label>
+          <select id="filter-severity" class="intel-filter-select">
+            <option value="">All Severities</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div class="intel-filter-group search-group">
+          <label for="filter-search" class="sr-only">Search</label>
+          <input type="search" id="filter-search" class="intel-filter-search" placeholder="Search events...">
+        </div>
+        <div class="intel-filter-actions">
+          <button class="btn-text" id="clear-filters">Clear Filters</button>
+          <button class="btn-text" id="copy-link">Copy Link</button>
+        </div>
+      </div>
+
+      <!-- Export Options -->
+      <div class="intel-export-bar">
+        <span class="intel-results-count" id="results-count">-- events</span>
+        <div class="intel-export-actions">
+          <button class="btn-text" id="export-csv">Export CSV</button>
+          <button class="btn-text" id="export-json">Export JSON</button>
+        </div>
+      </div>
+
+      <!-- Timeline Events -->
+      <div class="intel-timeline" id="timeline-container" role="feed" aria-busy="true">
+        <!-- Events loaded via JS -->
+        <div class="intel-timeline-loading" id="timeline-loading">
+          <div class="loading-spinner"></div>
+          <p>Loading pricing events...</p>
+        </div>
+      </div>
+
+      <div class="intel-timeline-load-more" id="load-more-container" hidden>
+        <button class="btn btn-secondary" id="load-more">Load More Events</button>
+      </div>
+    </section>
+
+    <!-- Multiplicative Savings Calculator -->
+    <section class="section intel-calculator-section" id="calculator">
+      <h2>Savings Calculator</h2>
+      <p>Calculate potential savings from price evolution, batching, and caching. <strong>Order matters</strong> - savings stack multiplicatively.</p>
+
+      <div class="intel-calc-container">
+        <div class="intel-calc-inputs">
+          <div class="intel-calc-mode-toggle">
+            <button class="calc-mode-btn active" data-mode="quick">Quick</button>
+            <button class="calc-mode-btn" data-mode="advanced">Advanced</button>
+            <button class="calc-mode-btn" data-mode="contract">Contract Benchmark</button>
+          </div>
+
+          <!-- Quick Mode -->
+          <div class="intel-calc-mode" id="calc-quick-mode">
+            <div class="intel-calc-field">
+              <label for="calc-monthly-spend">Monthly API Spend ($)</label>
+              <input type="number" id="calc-monthly-spend" value="10000" min="0" step="100">
+            </div>
+            <div class="intel-calc-field">
+              <label for="calc-model-tier">Current Model Tier</label>
+              <select id="calc-model-tier">
+                <option value="frontier">Frontier (GPT-4, Claude Opus)</option>
+                <option value="efficient" selected>Efficient (GPT-4o Mini, Haiku)</option>
+                <option value="open">Open (DeepSeek, Llama)</option>
+              </select>
+            </div>
+            <div class="intel-calc-field">
+              <label for="calc-start-date">When did you start?</label>
+              <select id="calc-start-date">
+                <option value="2023-03">March 2023 (GPT-4 Launch)</option>
+                <option value="2023-11">November 2023 (GPT-4 Turbo)</option>
+                <option value="2024-03">March 2024 (Claude 3 Launch)</option>
+                <option value="2024-07" selected>July 2024 (GPT-4o Mini)</option>
+                <option value="2024-12">December 2024 (DeepSeek V3)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Advanced Mode -->
+          <div class="intel-calc-mode" id="calc-advanced-mode" hidden>
+            <div class="intel-calc-field">
+              <label for="calc-adv-spend">Monthly API Spend ($)</label>
+              <input type="number" id="calc-adv-spend" value="10000" min="0" step="100">
+            </div>
+            <div class="intel-calc-field">
+              <label for="calc-batch-fraction">Batchable Requests (%)</label>
+              <input type="range" id="calc-batch-fraction" min="0" max="100" value="30">
+              <span class="range-value" id="calc-batch-value">30%</span>
+            </div>
+            <div class="intel-calc-field">
+              <label for="calc-cache-rate">Cache Hit Rate (%)</label>
+              <input type="range" id="calc-cache-rate" min="0" max="80" value="20">
+              <span class="range-value" id="calc-cache-value">20%</span>
+            </div>
+          </div>
+
+          <!-- Contract Benchmark Mode -->
+          <div class="intel-calc-mode" id="calc-contract-mode" hidden>
+            <div class="intel-calc-field">
+              <label for="calc-contract-input">Your Contract Input Rate ($/MTok)</label>
+              <input type="number" id="calc-contract-input" value="5.00" min="0" step="0.01">
+            </div>
+            <div class="intel-calc-field">
+              <label for="calc-contract-output">Your Contract Output Rate ($/MTok)</label>
+              <input type="number" id="calc-contract-output" value="15.00" min="0" step="0.01">
+            </div>
+            <div class="intel-calc-field">
+              <label for="calc-contract-provider">Provider</label>
+              <select id="calc-contract-provider">
+                <option value="OpenAI">OpenAI</option>
+                <option value="Anthropic">Anthropic</option>
+                <option value="Google">Google</option>
+              </select>
+            </div>
+            <p class="intel-calc-privacy">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Processed locally. No data uploaded.
+            </p>
+          </div>
+
+          <button class="btn btn-primary" id="calculate-savings">Calculate Savings</button>
+        </div>
+
+        <div class="intel-calc-results" id="calc-results">
+          <div class="intel-calc-result-placeholder">
+            <p>Enter your details and click Calculate to see potential savings.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Market Snapshot -->
+    <section class="section intel-snapshot-section" id="snapshot">
+      <h2>Current Market Snapshot</h2>
+      <p>Live pricing from our daily index. <span class="freshness-badge" id="freshness-badge"></span></p>
+
+      <div class="intel-snapshot-controls">
+        <select id="snapshot-metric" class="intel-filter-select">
+          <option value="blended">Blended (3:1 ratio)</option>
+          <option value="input">Input Only</option>
+          <option value="output">Output Only</option>
+        </select>
+      </div>
+
+      <div class="intel-snapshot-grid" id="snapshot-grid">
+        <div class="intel-snapshot-card">
+          <h3>Frontier</h3>
+          <div class="snapshot-value" id="snapshot-frontier">--</div>
+          <div class="snapshot-best" id="snapshot-frontier-best">Best: --</div>
+        </div>
+        <div class="intel-snapshot-card">
+          <h3>Efficient</h3>
+          <div class="snapshot-value" id="snapshot-efficient">--</div>
+          <div class="snapshot-best" id="snapshot-efficient-best">Best: --</div>
+        </div>
+        <div class="intel-snapshot-card">
+          <h3>Open</h3>
+          <div class="snapshot-value" id="snapshot-open">--</div>
+          <div class="snapshot-best" id="snapshot-open-best">Best: --</div>
+        </div>
+      </div>
+
+      <div class="intel-snapshot-stale" id="stale-banner" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Showing cached data. Live data unavailable.
+      </div>
+    </section>
+
+    <!-- Structural Features Explainer -->
+    <section class="section intel-features-section" id="features">
+      <h2>Cost Optimization Features</h2>
+      <p>Beyond price drops, providers offer structural features that can reduce costs significantly.</p>
+
+      <div class="intel-features-grid">
+        <div class="intel-feature-card">
+          <h4>Prompt Caching</h4>
+          <div class="feature-savings">50-90% savings</div>
+          <p>Cache static prompt prefixes. Works for system prompts, few-shot examples, and documents.</p>
+          <div class="feature-providers">
+            <span class="provider-badge">OpenAI</span>
+            <span class="provider-badge">Anthropic</span>
+            <span class="provider-badge">Google</span>
+          </div>
+          <details class="feature-details">
+            <summary>Implementation checklist</summary>
+            <ul>
+              <li>Identify prompts with static prefixes &gt;1024 tokens</li>
+              <li>Enable caching via API parameter</li>
+              <li>Monitor cache hit rates</li>
+              <li>Adjust prompt structure to maximize hits</li>
+            </ul>
+          </details>
+        </div>
+
+        <div class="intel-feature-card">
+          <h4>Batch API</h4>
+          <div class="feature-savings">50% savings</div>
+          <p>Submit requests in batches with 24-hour turnaround. Ideal for async workloads.</p>
+          <div class="feature-providers">
+            <span class="provider-badge">OpenAI</span>
+            <span class="provider-badge">Anthropic</span>
+          </div>
+          <details class="feature-details">
+            <summary>Implementation checklist</summary>
+            <ul>
+              <li>Identify non-time-sensitive requests</li>
+              <li>Create JSONL batch files</li>
+              <li>Submit via batch endpoint</li>
+              <li>Poll for completion</li>
+            </ul>
+          </details>
+        </div>
+
+        <div class="intel-feature-card">
+          <h4>Model Routing</h4>
+          <div class="feature-savings">30-70% savings</div>
+          <p>Route simple queries to cheaper models. Use frontier models only when needed.</p>
+          <div class="feature-providers">
+            <span class="provider-badge">Any</span>
+          </div>
+          <details class="feature-details">
+            <summary>Implementation checklist</summary>
+            <ul>
+              <li>Classify query complexity</li>
+              <li>Set up routing logic</li>
+              <li>Monitor quality by tier</li>
+              <li>Adjust thresholds based on results</li>
+            </ul>
+          </details>
+        </div>
+
+        <div class="intel-feature-card">
+          <h4>Context Window Optimization</h4>
+          <div class="feature-savings">20-50% savings</div>
+          <p>Reduce prompt size through summarization, chunking, and selective retrieval.</p>
+          <div class="feature-providers">
+            <span class="provider-badge">Any</span>
+          </div>
+          <details class="feature-details">
+            <summary>Implementation checklist</summary>
+            <ul>
+              <li>Measure current prompt sizes</li>
+              <li>Implement summarization for long context</li>
+              <li>Use RAG for selective retrieval</li>
+              <li>Compress examples and instructions</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+
+      <div class="intel-stackability">
+        <h4>Stackability Matrix</h4>
+        <p>These features compound. A well-optimized implementation can combine multiple savings:</p>
+        <table class="intel-stack-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Caching</th>
+              <th>Batching</th>
+              <th>Routing</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Caching</th>
+              <td>-</td>
+              <td class="stackable">Yes</td>
+              <td class="stackable">Yes</td>
+            </tr>
+            <tr>
+              <th>Batching</th>
+              <td class="stackable">Yes</td>
+              <td>-</td>
+              <td class="stackable">Yes</td>
+            </tr>
+            <tr>
+              <th>Routing</th>
+              <td class="stackable">Yes</td>
+              <td class="stackable">Yes</td>
+              <td>-</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Methodology Section -->
+    <section class="section intel-methodology-section" id="methodology">
+      <h2>Methodology &amp; Verification</h2>
+
+      <div class="intel-method-grid">
+        <div class="intel-method-card">
+          <h4>Data Collection</h4>
+          <p>Events are manually curated from official provider announcements, pricing pages, and blog posts. Each event includes a direct source URL.</p>
+        </div>
+        <div class="intel-method-card">
+          <h4>Verification</h4>
+          <p>All events are verified against primary sources. The <code>verifiedAt</code> timestamp indicates when we last confirmed the data.</p>
+        </div>
+        <div class="intel-method-card">
+          <h4>Confidence Levels</h4>
+          <ul>
+            <li><strong>High:</strong> Official pricing page or announcement</li>
+            <li><strong>Medium:</strong> Third-party aggregator or documentation</li>
+            <li><strong>Low:</strong> Community reports or indirect sources</li>
+          </ul>
+        </div>
+        <div class="intel-method-card">
+          <h4>Severity Rubric</h4>
+          <ul>
+            <li><strong>Critical:</strong> &ge;50% price change OR new tier undercuts by &ge;30%</li>
+            <li><strong>High:</strong> 20-49% change OR major model launch</li>
+            <li><strong>Medium:</strong> 5-19% change OR limited scope</li>
+            <li><strong>Low:</strong> &le;4% change OR minor updates</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="intel-corrections">
+        <h4>Corrections Policy</h4>
+        <p>If you find an error in our data, please <a href="https://github.com/intent-solutions-io/stci-standard-inference-token-cost-index/issues" target="_blank" rel="noopener noreferrer">open an issue on GitHub</a>. We aim to correct verified errors within 24 hours.</p>
+      </div>
+    </section>
+
+    <!-- CTA / Subscribe -->
+    <section class="section intel-cta-section" id="subscribe">
+      <div class="intel-cta-card">
+        <h2>Stay Updated</h2>
+        <p>Get notified when major pricing changes happen. No spam, just signal.</p>
+
+        <form class="intel-subscribe-form" id="subscribe-form">
+          <div class="intel-subscribe-field">
+            <label for="subscribe-email" class="sr-only">Email address</label>
+            <input type="email" id="subscribe-email" placeholder="you@company.com" required>
+          </div>
+          <div class="intel-subscribe-prefs">
+            <label class="intel-checkbox">
+              <input type="checkbox" name="pref-critical" checked>
+              <span>Critical changes (price drops &ge;50%)</span>
+            </label>
+            <label class="intel-checkbox">
+              <input type="checkbox" name="pref-new-models" checked>
+              <span>New model launches</span>
+            </label>
+            <label class="intel-checkbox">
+              <input type="checkbox" name="pref-weekly">
+              <span>Weekly market summary</span>
+            </label>
+          </div>
+          <!-- Honeypot -->
+          <input type="text" name="website" class="intel-hp" tabindex="-1" autocomplete="off">
+          <button type="submit" class="btn btn-primary">Subscribe</button>
+        </form>
+
+        <p class="intel-subscribe-note">Unsubscribe anytime. See our <a href="/privacy.html">Privacy Policy</a>.</p>
+      </div>
+    </section>
+
+    <!-- Navigation Links -->
+    <div class="links">
+      <a href="/">Home</a>
+      <a href="/compare.html">Price Comparison</a>
+      <a href="/docs.html">API Docs</a>
+      <a href="https://github.com/intent-solutions-io/stci-standard-inference-token-cost-index" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Data collected daily from official pricing pages. Not financial advice.</p>
+      <p class="legal-links">
+        <a href="/privacy.html">Privacy Policy</a> |
+        <a href="/terms.html">Terms of Service</a>
+      </p>
+      <p class="copyright">&copy; 2026 Intent Solutions. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <!-- Vendor scripts (loaded before main script) -->
+  <script src="vendor/chart.umd.min.js"></script>
+  <script src="vendor/chartjs-adapter-date-fns.min.js"></script>
+  <script src="vendor/fuse.min.js"></script>
+
+  <!-- Main intelligence script -->
+  <script src="intelligence.js"></script>
+</body>
+</html>
