@@ -503,3 +503,74 @@ html {
   background: var(--accent);
   color: var(--bg);
 }
+
+/* Legal Pages */
+.section.legal {
+  text-align: left;
+  margin: 2.5rem 0;
+}
+
+.section.legal h2 {
+  text-align: left;
+  font-size: 1.35rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section.legal h3 {
+  font-size: 1.1rem;
+  color: var(--text);
+  margin: 1.5rem 0 0.75rem;
+  font-weight: 600;
+}
+
+.section.legal p {
+  text-align: left;
+  max-width: none;
+  margin: 0 0 1rem;
+}
+
+.section.legal ul {
+  margin: 0.75rem 0 1rem 1.5rem;
+  color: var(--text-secondary);
+}
+
+.section.legal li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.section.legal li strong {
+  color: var(--text);
+}
+
+.section.legal a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.section.legal a:hover {
+  color: var(--accent-hover);
+}
+
+/* Footer Legal Links */
+.footer .legal-links {
+  margin-top: 1rem;
+}
+
+.footer .legal-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.footer .legal-links a:hover {
+  color: var(--accent);
+}
+
+.footer .copyright {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+}
