@@ -52,8 +52,8 @@ jobs:
       - name: Get Hosting URL
         id: hosting
         run: |
-          URL=$(firebase hosting:channel:list --project ${{ env.PROJECT_ID }} --json 2>/dev/null | jq -r '.result[0].url // "https://stci-production.web.app"')
-          echo "url=$URL" >> $GITHUB_OUTPUT
+          # Use the known production URL (custom domain)
+          echo "url=https://inferencepriceindex.com" >> $GITHUB_OUTPUT
 
       - name: Deployment summary
         run: |
