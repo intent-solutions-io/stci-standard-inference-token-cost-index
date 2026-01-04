@@ -228,6 +228,17 @@
   </div>
 
   <script>
+    // Escape HTML to prevent XSS when inserting into innerHTML
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     // Normalize model IDs for matching across sources
     // NOTE: This must stay in sync with tests/test_comparison.py::normalize_model_id
     function normalizeModelId(modelId) {
@@ -312,7 +323,10 @@
 
             const offBlended = (off.input_rate_usd_per_1m + off.output_rate_usd_per_1m) / 2;
             const aggBlended = (agg.input_rate_usd_per_1m + agg.output_rate_usd_per_1m) / 2;
-            const diffPct = ((aggBlended - offBlended) / offBlended) * 100;
+            // Guard against division by zero
+            const diffPct = offBlended > 0
+              ? ((aggBlended - offBlended) / offBlended) * 100
+              : (aggBlended > 0 ? Infinity : 0);
 
             rows.push({
               name: sources.displayName || normalized,
@@ -340,12 +354,13 @@
         tbody.innerHTML = rows.map(row => {
           const diffClass = row.diffPct > 5 ? 'higher' : row.diffPct < -5 ? 'lower' : 'same';
           const diffSign = row.diffPct > 0 ? '+' : '';
+          const diffDisplay = isFinite(row.diffPct) ? `${diffSign}${row.diffPct.toFixed(0)}%` : 'N/A';
 
           return `
             <tr>
               <td>
-                <div class="model-name">${row.name}</div>
-                <div class="provider">${row.provider}</div>
+                <div class="model-name">${escapeHtml(row.name)}</div>
+                <div class="provider">${escapeHtml(row.provider)}</div>
               </td>
               <td>
                 <span class="price">$${row.offInput.toFixed(2)}</span> /
@@ -358,7 +373,7 @@
                 <div class="provider">input / output per 1M</div>
               </td>
               <td>
-                <span class="diff ${diffClass}">${diffSign}${row.diffPct.toFixed(0)}%</span>
+                <span class="diff ${diffClass}">${diffDisplay}</span>
               </td>
             </tr>
           `;
