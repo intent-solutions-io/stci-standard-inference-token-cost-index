@@ -19,6 +19,15 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Email subscribers - write-only (no read from client)
+    match /subscribers/{email} {
+      allow read: if false;
+      allow create: if request.resource.data.keys().hasAll(['email', 'createdAt'])
+                    && request.resource.data.email is string
+                    && request.resource.data.email.matches('.*@.*\\..*');
+      allow update, delete: if false;
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;

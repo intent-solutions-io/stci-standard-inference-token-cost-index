@@ -1024,22 +1024,44 @@
         return;
       }
 
-      const email = $('#subscribe-email').value;
+      const email = $('#subscribe-email').value.trim().toLowerCase();
       const prefs = {
-        critical: form.querySelector('[name="pref-critical"]')?.checked,
-        newModels: form.querySelector('[name="pref-new-models"]')?.checked,
-        weekly: form.querySelector('[name="pref-weekly"]')?.checked
+        critical: form.querySelector('[name="pref-critical"]')?.checked || false,
+        newModels: form.querySelector('[name="pref-new-models"]')?.checked || false,
+        weekly: form.querySelector('[name="pref-weekly"]')?.checked || false
       };
 
-      // For now, just show success (actual endpoint would be /v1/subscribe)
       const btn = form.querySelector('button[type="submit"]');
-      btn.textContent = 'Subscribed!';
+      btn.textContent = 'Saving...';
       btn.disabled = true;
-      setTimeout(() => {
-        btn.textContent = 'Subscribe';
+
+      try {
+        // Save to Firestore
+        if (window.firebaseDb) {
+          const { db, doc, setDoc, serverTimestamp } = window.firebaseDb;
+          const emailId = email.replace(/[.#$\/\[\]]/g, '_');
+          await setDoc(doc(db, 'subscribers', emailId), {
+            email: email,
+            preferences: prefs,
+            createdAt: serverTimestamp(),
+            source: 'intelligence-page'
+          });
+        }
+
+        btn.textContent = 'Subscribed!';
+        setTimeout(() => {
+          btn.textContent = 'Subscribe';
+          btn.disabled = false;
+          form.reset();
+        }, 3000);
+      } catch (error) {
+        console.error('Subscribe error:', error);
+        btn.textContent = 'Error - Try Again';
         btn.disabled = false;
-        form.reset();
-      }, 3000);
+        setTimeout(() => {
+          btn.textContent = 'Subscribe';
+        }, 3000);
+      }
     });
   }
 

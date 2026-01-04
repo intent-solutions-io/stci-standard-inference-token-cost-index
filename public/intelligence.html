@@ -574,6 +574,9 @@
     </div>
   </footer>
 
+  <!-- Firebase (must load before intelligence.js for subscribe form) -->
+  <script type="module" src="analytics.js"></script>
+
   <!-- Vendor scripts (loaded before main script) -->
   <script src="vendor/chart.umd.min.js"></script>
   <script src="vendor/chartjs-adapter-date-fns.min.js"></script>
@@ -592,6 +595,5 @@
       });
     }
   </script>
-  <script type="module" src="analytics.js"></script>
 </body>
 </html>

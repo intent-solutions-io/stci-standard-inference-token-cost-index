@@ -1,6 +1,7 @@
-// Firebase Analytics for inferencepriceindex.com
+// Firebase for inferencepriceindex.com
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBk3yt04695pb2tdJAR5gT54bCgIqR9dnE",
@@ -14,3 +15,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+const db = getFirestore(app);
+
+// Expose Firestore for non-module scripts
+window.firebaseDb = { db, doc, setDoc, serverTimestamp };
