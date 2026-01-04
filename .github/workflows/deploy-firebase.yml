@@ -36,12 +36,14 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install Functions dependencies
         run: |
           cd functions
-          pip install -r requirements.txt -t lib
+          python3.12 -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
 
       - name: Deploy to Firebase
         run: |
