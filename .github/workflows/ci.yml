@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate Data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate pricing events
+        run: npm run validate
+
+      - name: Generate JSON-LD
+        run: npm run generate:jsonld
+
+  test:
+    name: Playwright Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        env:
+          BASE_URL: https://inferencepriceindex.com
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  lighthouse:
+    name: Lighthouse Audit
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Lighthouse
+        run: |
+          npx lighthouse https://inferencepriceindex.com/intelligence.html \
+            --output=json \
+            --output-path=./lighthouse-results.json \
+            --chrome-flags="--headless --no-sandbox" \
+            --only-categories=performance,accessibility,best-practices,seo
+
+      - name: Check Lighthouse scores
+        run: |
+          node -e "
+          const results = require('./lighthouse-results.json');
+          const scores = {
+            performance: Math.round(results.categories.performance.score * 100),
+            accessibility: Math.round(results.categories.accessibility.score * 100),
+            'best-practices': Math.round(results.categories['best-practices'].score * 100),
+            seo: Math.round(results.categories.seo.score * 100)
+          };
+
+          console.log('Lighthouse Scores:');
+          console.log('  Performance:', scores.performance);
+          console.log('  Accessibility:', scores.accessibility);
+          console.log('  Best Practices:', scores['best-practices']);
+          console.log('  SEO:', scores.seo);
+
+          const thresholds = { performance: 85, accessibility: 90, 'best-practices': 90, seo: 90 };
+          let failed = false;
+
+          for (const [key, threshold] of Object.entries(thresholds)) {
+            if (scores[key] < threshold) {
+              console.error('FAIL: ' + key + ' score ' + scores[key] + ' is below threshold ' + threshold);
+              failed = true;
+            }
+          }
+
+          if (failed) process.exit(1);
+          console.log('All scores meet thresholds!');
+          "
+
+      - name: Upload Lighthouse report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-report
+          path: lighthouse-results.json
+          retention-days: 7
