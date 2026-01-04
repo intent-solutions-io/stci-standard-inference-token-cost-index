@@ -31,7 +31,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from services.collector.sources import OpenRouterSource, FixtureSource, BaseSource
-from services.collector.drift import detect_drift, normalize_model_id
+from services.collector.drift import detect_drift, detect_aggregator_markups, normalize_model_id
 
 # Import direct sources (optional - may not be available yet)
 try:
@@ -196,6 +196,17 @@ class CollectionPipeline:
                 print(f"        ... and {len(drift_report.warnings) - 5} more")
         else:
             print("      No significant drift detected")
+
+        # Step 2b: Log aggregator markups
+        markup_report = detect_aggregator_markups(all_observations)
+        if markup_report.has_markups:
+            print(f"      Aggregator markups ({len(markup_report.markups)} models):")
+            for model_id, agg, inp_markup, out_markup in sorted(
+                markup_report.markups, key=lambda x: x[3], reverse=True
+            )[:5]:
+                print(f"        {model_id}: {agg} +{inp_markup:.0%} input, +{out_markup:.0%} output")
+            if len(markup_report.markups) > 5:
+                print(f"        ... and {len(markup_report.markups) - 5} more")
 
         # Step 3: Deduplicate (prefer official over aggregator)
         print("[3/5] Deduplicating observations...")

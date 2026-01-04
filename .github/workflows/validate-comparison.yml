@@ -1,0 +1,162 @@
+name: Validate Comparison Data
+
+on:
+  schedule:
+    # Run after daily pipeline (which runs at 00:30 UTC)
+    - cron: '45 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests pytest
+
+      - name: Run comparison tests
+        run: python -m pytest tests/test_comparison.py -v
+
+      - name: Validate live comparison data
+        run: |
+          python << 'EOF'
+          import json
+          import re
+          import urllib.request
+          import sys
+
+          MAX_MARKUP = 1.5  # 150% - anything higher is likely a bug
+          MIN_OVERLAPS = 5  # Expect at least 5 matching models
+
+          def normalize_model_id(model_id):
+              if not model_id:
+                  return ''
+              normalized = model_id.split('/')[-1] if '/' in model_id else model_id
+
+              aliases = {
+                  'gpt-4-turbo-preview': 'gpt-4-turbo',
+                  'gpt-4-1106-preview': 'gpt-4-turbo',
+                  'chatgpt-4o-latest': 'gpt-4o',
+                  'gpt-3.5-turbo-0613': 'gpt-3.5-turbo',
+              }
+              if normalized in aliases:
+                  return aliases[normalized].lower()
+
+              normalized = re.sub(r'-\d{4}-\d{2}-\d{2}$', '', normalized)
+              normalized = re.sub(r'-\d{8}$', '', normalized)
+              normalized = re.sub(r':thinking$', '', normalized)
+              normalized = re.sub(r'-preview$', '', normalized)
+              normalized = re.sub(r'-001$', '', normalized)
+              return normalized.lower()
+
+          # Fetch latest data
+          print("Fetching latest index...")
+          with urllib.request.urlopen('https://inferencepriceindex.com/v1/index/latest') as r:
+              index = json.loads(r.read().decode())
+          date = index['date']
+          print(f"Date: {date}")
+
+          print(f"Fetching observations for {date}...")
+          with urllib.request.urlopen(f'https://inferencepriceindex.com/v1/observations/{date}') as r:
+              data = json.loads(r.read().decode())
+
+          # Group by normalized ID
+          models = {}
+          for obs in data.get('items', []):
+              model_id = obs.get('model_id', '')
+              normalized = normalize_model_id(model_id)
+              method = obs.get('collection_method', '')
+
+              if not normalized:
+                  continue
+
+              if normalized not in models:
+                  models[normalized] = {'official': None, 'aggregator': None}
+
+              if method == 'manual':
+                  models[normalized]['official'] = obs
+              elif method == 'aggregator_api':
+                  models[normalized]['aggregator'] = obs
+
+          # Validate
+          errors = []
+          warnings = []
+          valid = 0
+
+          for norm_id, sources in models.items():
+              if not sources['official'] or not sources['aggregator']:
+                  continue
+
+              off = sources['official']
+              agg = sources['aggregator']
+
+              off_blend = (off['input_rate_usd_per_1m'] + off['output_rate_usd_per_1m']) / 2
+              agg_blend = (agg['input_rate_usd_per_1m'] + agg['output_rate_usd_per_1m']) / 2
+
+              if off_blend == 0:
+                  errors.append(f"{norm_id}: Official price is $0")
+                  continue
+
+              markup = (agg_blend - off_blend) / off_blend
+
+              if markup > MAX_MARKUP:
+                  errors.append(
+                      f"{norm_id}: Markup {markup:.0%} > {MAX_MARKUP:.0%} - "
+                      f"likely wrong model match"
+                  )
+              else:
+                  valid += 1
+                  if markup > 1.0:
+                      warnings.append(f"{norm_id}: High markup {markup:.0%}")
+
+          # Report
+          print(f"\n=== Validation Results ===")
+          print(f"Valid comparisons: {valid}")
+          print(f"Warnings: {len(warnings)}")
+          print(f"Errors: {len(errors)}")
+
+          if warnings:
+              print("\nWarnings:")
+              for w in warnings:
+                  print(f"  - {w}")
+
+          if errors:
+              print("\nErrors:")
+              for e in errors:
+                  print(f"  - {e}")
+
+          # Fail conditions
+          failed = False
+
+          if valid < MIN_OVERLAPS:
+              print(f"\n::error::Only {valid} overlapping models found (expected >= {MIN_OVERLAPS})")
+              failed = True
+
+          if errors:
+              print(f"\n::error::{len(errors)} comparison errors detected")
+              failed = True
+
+          if failed:
+              sys.exit(1)
+
+          print("\n✓ All validations passed")
+          EOF
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Comparison Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Validates that model matching produces reasonable results." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Checks:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Unit tests for normalization logic" >> $GITHUB_STEP_SUMMARY
+          echo "- At least 5 overlapping models between sources" >> $GITHUB_STEP_SUMMARY
+          echo "- No markup exceeds 150% (likely wrong match)" >> $GITHUB_STEP_SUMMARY

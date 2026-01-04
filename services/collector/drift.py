@@ -19,6 +19,9 @@ class DriftReport:
     warnings: List[str] = field(default_factory=list)
     """Human-readable warning messages"""
 
+    markups: List[Tuple[str, str, float, float]] = field(default_factory=list)
+    """List of (model_id, aggregator, input_markup_pct, output_markup_pct)"""
+
     @property
     def has_warnings(self) -> bool:
         """Check if any drift warnings were generated."""
@@ -28,6 +31,11 @@ class DriftReport:
     def discrepancy_count(self) -> int:
         """Number of model/source pairs with price drift."""
         return len(self.discrepancies)
+
+    @property
+    def has_markups(self) -> bool:
+        """Check if aggregator markups were detected."""
+        return len(self.markups) > 0
 
 
 def normalize_model_id(model_id: str) -> str:
@@ -56,6 +64,10 @@ def detect_drift(
 ) -> DriftReport:
     """
     Compare prices across sources for the same model.
+
+    Only compares sources of the same type (official vs official).
+    Aggregators (like OpenRouter) add markup, so comparing them to
+    official sources would always show drift.
 
     Args:
         observations: List of observation dictionaries from multiple sources
@@ -87,6 +99,15 @@ def detect_drift(
             for j in range(i + 1, len(obs_list)):
                 obs1 = obs_list[i]
                 obs2 = obs_list[j]
+
+                # Only compare sources of the same type
+                # Aggregators add markup, so skip official vs aggregator comparisons
+                method1 = obs1.get("collection_method", "")
+                method2 = obs2.get("collection_method", "")
+                if method1 != method2:
+                    # Skip comparisons between different source types
+                    # (e.g., official "manual" vs aggregator "aggregator_api")
+                    continue
 
                 source1 = obs1.get("source_url", obs1.get("collection_method", "source1"))
                 source2 = obs2.get("source_url", obs2.get("collection_method", "source2"))
@@ -153,3 +174,71 @@ def _extract_source_name(source: str) -> str:
     if source == "config_file":
         return "config"
     return source[:20]  # Truncate long strings
+
+
+def detect_aggregator_markups(
+    observations: List[dict],
+) -> DriftReport:
+    """
+    Calculate aggregator markup over official pricing.
+
+    Compares aggregator prices (OpenRouter) to official sources
+    to track markup percentages.
+
+    Args:
+        observations: List of observation dictionaries from multiple sources
+
+    Returns:
+        DriftReport with markup data
+    """
+    report = DriftReport()
+
+    # Group observations by normalized model ID
+    model_prices: dict[str, dict[str, dict]] = {}
+    for obs in observations:
+        model_id = obs.get("model_id", "")
+        normalized = normalize_model_id(model_id)
+        method = obs.get("collection_method", "")
+
+        if normalized not in model_prices:
+            model_prices[normalized] = {"official": None, "aggregator": None}
+
+        if method == "manual":
+            model_prices[normalized]["official"] = obs
+        elif method == "aggregator_api":
+            model_prices[normalized]["aggregator"] = obs
+
+    # Calculate markups where we have both sources
+    for normalized_id, sources in model_prices.items():
+        official = sources.get("official")
+        aggregator = sources.get("aggregator")
+
+        if not official or not aggregator:
+            continue
+
+        off_input = official.get("input_rate_usd_per_1m", 0)
+        off_output = official.get("output_rate_usd_per_1m", 0)
+        agg_input = aggregator.get("input_rate_usd_per_1m", 0)
+        agg_output = aggregator.get("output_rate_usd_per_1m", 0)
+
+        # Calculate markup percentages
+        if off_input > 0:
+            input_markup = (agg_input - off_input) / off_input
+        else:
+            input_markup = 0.0
+
+        if off_output > 0:
+            output_markup = (agg_output - off_output) / off_output
+        else:
+            output_markup = 0.0
+
+        # Only record if there's meaningful markup (> 1%)
+        if input_markup > 0.01 or output_markup > 0.01:
+            agg_source = _extract_source_name(
+                aggregator.get("source_url", "aggregator")
+            )
+            report.markups.append(
+                (normalized_id, agg_source, input_markup, output_markup)
+            )
+
+    return report

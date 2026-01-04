@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Price Comparison - Inference Price Index</title>
+  <meta name="description" content="Compare LLM API pricing between direct providers (OpenAI, Anthropic, Google) and aggregators (OpenRouter). See real price differentials.">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      font-size: 0.9rem;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .comparison-table th {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .comparison-table tr:hover {
+      background: var(--card-hover);
+    }
+
+    .comparison-table .model-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .comparison-table .provider {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .comparison-table .price {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      color: var(--accent);
+    }
+
+    .comparison-table .diff {
+      font-weight: 600;
+    }
+
+    .diff.higher {
+      color: var(--accent-red);
+    }
+
+    .diff.lower {
+      color: var(--accent);
+    }
+
+    .diff.same {
+      color: var(--text-muted);
+    }
+
+    .explainer {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 2rem;
+      margin: 2rem 0;
+    }
+
+    .explainer h3 {
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .explainer ul {
+      color: var(--text-secondary);
+      padding-left: 1.5rem;
+    }
+
+    .explainer li {
+      margin: 0.5rem 0;
+    }
+
+    .source-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .source-badge.official {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent);
+    }
+
+    .source-badge.aggregator {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--accent-red);
+    }
+
+    .last-updated {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin: 2rem 0;
+    }
+
+    @media (max-width: 768px) {
+      .comparison-table {
+        font-size: 0.8rem;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 0.75rem 0.5rem;
+      }
+
+      /* Fix mobile text spacing in section */
+      .section h2 {
+        letter-spacing: -0.01em;
+        font-size: 1.4rem;
+      }
+
+      .section p {
+        text-align: center;
+        word-spacing: normal;
+        letter-spacing: normal;
+        line-height: 1.5;
+        padding: 0 0.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .section h2 {
+        font-size: 1.25rem;
+        letter-spacing: 0;
+      }
+
+      .section p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      .comparison-table {
+        font-size: 0.75rem;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 0.5rem 0.25rem;
+      }
+
+      .comparison-table .provider {
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="docs-header">
+      <h1>Price Comparison</h1>
+      <p>Direct API vs Aggregator Pricing</p>
+    </header>
+
+    <div class="explainer">
+      <h3>Why Prices Differ</h3>
+      <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+        Aggregators like OpenRouter route requests through cloud providers (AWS Bedrock, Google Cloud, Azure)
+        rather than direct API access. These intermediaries have their own pricing:
+      </p>
+      <ul>
+        <li><strong>Direct API</strong> - Connect directly to OpenAI, Anthropic, or Google. Lowest prices.</li>
+        <li><strong>Cloud Providers</strong> - AWS Bedrock, Azure, GCP often charge premiums for managed access.</li>
+        <li><strong>Aggregators</strong> - OpenRouter, etc. use cloud providers + add platform fees (5.5% on credits).</li>
+      </ul>
+      <p style="color: var(--text-muted); margin-top: 1rem; font-size: 0.875rem;">
+        Source: <a href="https://openrouter.ai/announcements/simplifying-our-platform-fee" target="_blank" rel="noopener" style="color: var(--accent);">OpenRouter Fee Structure</a>
+      </p>
+    </div>
+
+    <section class="section">
+      <h2>Current Price Differentials</h2>
+      <p>Comparing official direct API pricing to OpenRouter. Updated daily.</p>
+
+      <table class="comparison-table" id="comparison-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Direct API</th>
+            <th>OpenRouter</th>
+            <th>Difference</th>
+          </tr>
+        </thead>
+        <tbody id="comparison-body">
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading...</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <p class="last-updated" id="last-updated">Loading comparison data...</p>
+
+    <section class="explainer">
+      <h3>When to Use Each</h3>
+      <ul>
+        <li><strong>Direct API</strong> - Best for production workloads where cost matters. Requires managing multiple API keys.</li>
+        <li><strong>OpenRouter</strong> - Convenient for prototyping, model switching, or when you need fallback routing. Worth the premium for flexibility.</li>
+      </ul>
+    </section>
+
+    <div class="links">
+      <a href="/">Back to Index</a>
+      <a href="/docs.html">API Docs</a>
+      <a href="/v1/methodology">Methodology</a>
+    </div>
+
+    <footer class="footer">
+      <p>Data collected daily from official pricing pages. Not financial advice.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Escape HTML to prevent XSS when inserting into innerHTML
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Normalize model IDs for matching across sources
+    // NOTE: This must stay in sync with tests/test_comparison.py::normalize_model_id
+    function normalizeModelId(modelId) {
+      if (!modelId) return '';
+
+      // Remove provider prefix (e.g., "openai/gpt-4o" -> "gpt-4o")
+      let normalized = modelId.includes('/') ? modelId.split('/').pop() : modelId;
+
+      // Check aliases FIRST before stripping suffixes
+      // This handles cases like 'gpt-4-1106-preview' correctly
+      const aliases = {
+        'gpt-4-turbo-preview': 'gpt-4-turbo',
+        'gpt-4-1106-preview': 'gpt-4-turbo',
+        'chatgpt-4o-latest': 'gpt-4o',
+        'gpt-3.5-turbo-0613': 'gpt-3.5-turbo',
+        // NOT aliased (different pricing): gpt-3.5-turbo-16k, gpt-3.5-turbo-instruct
+        // NOT aliased (different pricing): gpt-4o:extended
+      };
+
+      if (aliases[normalized]) {
+        return aliases[normalized].toLowerCase();
+      }
+
+      // Remove date suffixes: YYYY-MM-DD or YYYYMMDD
+      normalized = normalized.replace(/-\d{4}-\d{2}-\d{2}$/, '');
+      normalized = normalized.replace(/-\d{8}$/, '');
+
+      // Remove common suffixes that don't affect base model identity
+      // NOTE: Do NOT remove :extended - it's a different product with different pricing
+      normalized = normalized.replace(/:thinking$/, '');
+      normalized = normalized.replace(/-preview$/, '');
+      normalized = normalized.replace(/-001$/, '');
+
+      return normalized.toLowerCase();
+    }
+
+    async function loadComparison() {
+      try {
+        // First get latest index to find the date
+        const indexRes = await fetch('/v1/index/latest');
+        const indexData = await indexRes.json();
+        const latestDate = indexData.date;
+
+        // Then fetch observations for that date
+        const res = await fetch(`/v1/observations/${latestDate}`);
+        const data = await res.json();
+
+        if (!data.items) {
+          document.getElementById('comparison-body').innerHTML =
+            '<tr><td colspan="4" style="text-align: center;">No comparison data available</td></tr>';
+          document.getElementById('last-updated').textContent = 'No data available';
+          return;
+        }
+
+        // Group by normalized model name
+        const models = {};
+        data.items.forEach(obs => {
+          const modelId = obs.model_id || '';
+          const normalized = normalizeModelId(modelId);
+
+          if (!normalized) return;
+
+          if (!models[normalized]) {
+            models[normalized] = { official: null, aggregator: null, displayName: '' };
+          }
+
+          if (obs.collection_method === 'manual') {
+            models[normalized].official = obs;
+            // Use official name as display name (cleaner)
+            models[normalized].displayName = modelId.includes('/') ? modelId.split('/').pop() : modelId;
+          } else if (obs.collection_method === 'aggregator_api') {
+            models[normalized].aggregator = obs;
+          }
+        });
+
+        // Build comparison rows for models with both sources
+        const rows = [];
+        for (const [normalized, sources] of Object.entries(models)) {
+          if (sources.official && sources.aggregator) {
+            const off = sources.official;
+            const agg = sources.aggregator;
+
+            const offBlended = (off.input_rate_usd_per_1m + off.output_rate_usd_per_1m) / 2;
+            const aggBlended = (agg.input_rate_usd_per_1m + agg.output_rate_usd_per_1m) / 2;
+            // Guard against division by zero
+            const diffPct = offBlended > 0
+              ? ((aggBlended - offBlended) / offBlended) * 100
+              : (aggBlended > 0 ? Infinity : 0);
+
+            rows.push({
+              name: sources.displayName || normalized,
+              provider: off.provider,
+              offInput: off.input_rate_usd_per_1m,
+              offOutput: off.output_rate_usd_per_1m,
+              aggInput: agg.input_rate_usd_per_1m,
+              aggOutput: agg.output_rate_usd_per_1m,
+              diffPct
+            });
+          }
+        }
+
+        // Sort by difference (highest first)
+        rows.sort((a, b) => b.diffPct - a.diffPct);
+
+        if (rows.length === 0) {
+          document.getElementById('comparison-body').innerHTML =
+            '<tr><td colspan="4" style="text-align: center;">No overlapping models found between sources</td></tr>';
+          return;
+        }
+
+        // Render table
+        const tbody = document.getElementById('comparison-body');
+        tbody.innerHTML = rows.map(row => {
+          const diffClass = row.diffPct > 5 ? 'higher' : row.diffPct < -5 ? 'lower' : 'same';
+          const diffSign = row.diffPct > 0 ? '+' : '';
+          const diffDisplay = isFinite(row.diffPct) ? `${diffSign}${row.diffPct.toFixed(0)}%` : 'N/A';
+
+          return `
+            <tr>
+              <td>
+                <div class="model-name">${escapeHtml(row.name)}</div>
+                <div class="provider">${escapeHtml(row.provider)}</div>
+              </td>
+              <td>
+                <span class="price">$${row.offInput.toFixed(2)}</span> /
+                <span class="price">$${row.offOutput.toFixed(2)}</span>
+                <div class="provider">input / output per 1M</div>
+              </td>
+              <td>
+                <span class="price">$${row.aggInput.toFixed(2)}</span> /
+                <span class="price">$${row.aggOutput.toFixed(2)}</span>
+                <div class="provider">input / output per 1M</div>
+              </td>
+              <td>
+                <span class="diff ${diffClass}">${diffDisplay}</span>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        document.getElementById('last-updated').textContent =
+          `Data from ${data.date} | ${rows.length} models compared`;
+
+      } catch (e) {
+        console.error('Failed to load comparison:', e);
+        document.getElementById('comparison-body').innerHTML =
+          '<tr><td colspan="4" style="text-align: center; color: var(--accent-red);">Failed to load data</td></tr>';
+      }
+    }
+
+    loadComparison();
+  </script>
+</body>
+</html>
