@@ -80,3 +80,5 @@ node_modules/
 # Virtual environment
 venv/
 logs/*.log
+lighthouse-report*.html
+lighthouse-report*.json

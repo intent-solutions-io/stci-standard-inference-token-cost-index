@@ -16,10 +16,10 @@
     "test:e2e": "playwright test",
     "test:lighthouse": "lhci autorun"
   },
-  "dependencies": {},
   "devDependencies": {
     "ajv": "^8.12.0",
-    "ajv-formats": "^2.1.1"
+    "ajv-formats": "^2.1.1",
+    "lighthouse": "^13.0.1"
   },
   "engines": {
     "node": ">=18.0.0"

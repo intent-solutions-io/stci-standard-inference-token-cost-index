@@ -617,7 +617,7 @@ html {
 .hero-stat-label {
   display: block;
   font-size: 0.875rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-top: 0.25rem;
 }
 

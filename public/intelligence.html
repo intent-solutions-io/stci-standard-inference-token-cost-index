@@ -52,6 +52,7 @@
       </div>
     </header>
 
+    <main>
     <!-- Summary Stats Cards -->
     <section class="section intel-summary" id="summary">
       <div class="intel-stats-grid">
@@ -287,6 +288,7 @@
       <p>Live pricing from our daily index. <span class="freshness-badge" id="freshness-badge"></span></p>
 
       <div class="intel-snapshot-controls">
+        <label for="snapshot-metric" class="sr-only">Select pricing metric</label>
         <select id="snapshot-metric" class="intel-filter-select">
           <option value="blended">Blended (3:1 ratio)</option>
           <option value="input">Input Only</option>
@@ -325,7 +327,7 @@
 
       <div class="intel-features-grid">
         <div class="intel-feature-card">
-          <h4>Prompt Caching</h4>
+          <h3>Prompt Caching</h3>
           <div class="feature-savings">50-90% savings</div>
           <p>Cache static prompt prefixes. Works for system prompts, few-shot examples, and documents.</p>
           <div class="feature-providers">
@@ -345,7 +347,7 @@
         </div>
 
         <div class="intel-feature-card">
-          <h4>Batch API</h4>
+          <h3>Batch API</h3>
           <div class="feature-savings">50% savings</div>
           <p>Submit requests in batches with 24-hour turnaround. Ideal for async workloads.</p>
           <div class="feature-providers">
@@ -364,7 +366,7 @@
         </div>
 
         <div class="intel-feature-card">
-          <h4>Model Routing</h4>
+          <h3>Model Routing</h3>
           <div class="feature-savings">30-70% savings</div>
           <p>Route simple queries to cheaper models. Use frontier models only when needed.</p>
           <div class="feature-providers">
@@ -382,7 +384,7 @@
         </div>
 
         <div class="intel-feature-card">
-          <h4>Context Window Optimization</h4>
+          <h3>Context Window Optimization</h3>
           <div class="feature-savings">20-50% savings</div>
           <p>Reduce prompt size through summarization, chunking, and selective retrieval.</p>
           <div class="feature-providers">
@@ -401,7 +403,7 @@
       </div>
 
       <div class="intel-stackability">
-        <h4>Stackability Matrix</h4>
+        <h3>Stackability Matrix</h3>
         <p>These features compound. A well-optimized implementation can combine multiple savings:</p>
         <table class="intel-stack-table">
           <thead>
@@ -442,15 +444,15 @@
 
       <div class="intel-method-grid">
         <div class="intel-method-card">
-          <h4>Data Collection</h4>
+          <h3>Data Collection</h3>
           <p>Events are manually curated from official provider announcements, pricing pages, and blog posts. Each event includes a direct source URL.</p>
         </div>
         <div class="intel-method-card">
-          <h4>Verification</h4>
+          <h3>Verification</h3>
           <p>All events are verified against primary sources. The <code>verifiedAt</code> timestamp indicates when we last confirmed the data.</p>
         </div>
         <div class="intel-method-card">
-          <h4>Confidence Levels</h4>
+          <h3>Confidence Levels</h3>
           <ul>
             <li><strong>High:</strong> Official pricing page or announcement</li>
             <li><strong>Medium:</strong> Third-party aggregator or documentation</li>
@@ -458,7 +460,7 @@
           </ul>
         </div>
         <div class="intel-method-card">
-          <h4>Severity Rubric</h4>
+          <h3>Severity Rubric</h3>
           <ul>
             <li><strong>Critical:</strong> &ge;50% price change OR new tier undercuts by &ge;30%</li>
             <li><strong>High:</strong> 20-49% change OR major model launch</li>
@@ -469,7 +471,7 @@
       </div>
 
       <div class="intel-corrections">
-        <h4>Corrections Policy</h4>
+        <h3>Corrections Policy</h3>
         <p>If you find an error in our data, please <a href="https://github.com/intent-solutions-io/stci-standard-inference-token-cost-index/issues" target="_blank" rel="noopener noreferrer">open an issue on GitHub</a>. We aim to correct verified errors within 24 hours.</p>
       </div>
     </section>
@@ -500,7 +502,7 @@
             </label>
           </div>
           <!-- Honeypot -->
-          <input type="text" name="website" class="intel-hp" tabindex="-1" autocomplete="off">
+          <input type="text" name="website" class="intel-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
           <button type="submit" class="btn btn-primary">Subscribe</button>
         </form>
 
@@ -515,6 +517,7 @@
       <a href="/docs.html">API Docs</a>
       <a href="https://github.com/intent-solutions-io/stci-standard-inference-token-cost-index" target="_blank" rel="noopener noreferrer">GitHub</a>
     </div>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
