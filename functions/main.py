@@ -8,8 +8,18 @@ from firebase_functions import https_fn
 from firebase_admin import initialize_app, firestore
 import json
 
-initialize_app()
-db = firestore.client()
+# Defer initialization until runtime (not during function analysis)
+_app = None
+_db = None
+
+
+def get_db():
+    """Lazy-load Firestore client on first use."""
+    global _app, _db
+    if _db is None:
+        _app = initialize_app()
+        _db = firestore.client()
+    return _db
 
 
 @https_fn.on_request()
@@ -49,6 +59,7 @@ def handle_health():
 
 def handle_index_latest():
     """Get the most recent index."""
+    db = get_db()
     docs = db.collection("indices").order_by(
         "date", direction=firestore.Query.DESCENDING
     ).limit(1).stream()
@@ -61,6 +72,7 @@ def handle_index_latest():
 
 def handle_index_date(date: str):
     """Get index for a specific date."""
+    db = get_db()
     doc = db.collection("indices").document(date).get()
     if doc.exists:
         return json_response(doc.to_dict())
@@ -69,6 +81,7 @@ def handle_index_date(date: str):
 
 def handle_indices_list():
     """List all available index dates."""
+    db = get_db()
     docs = db.collection("indices").order_by(
         "date", direction=firestore.Query.DESCENDING
     ).stream()
@@ -83,6 +96,7 @@ def handle_indices_list():
 
 def handle_observations(date: str):
     """Get raw pricing observations for a date."""
+    db = get_db()
     doc = db.collection("observations").document(date).get()
     if doc.exists:
         return json_response(doc.to_dict())
@@ -91,6 +105,7 @@ def handle_observations(date: str):
 
 def handle_methodology():
     """Get current index methodology."""
+    db = get_db()
     doc = db.collection("methodology").document("current").get()
     if doc.exists:
         return json_response(doc.to_dict())
