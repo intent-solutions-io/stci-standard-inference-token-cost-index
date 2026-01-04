@@ -25,6 +25,44 @@
   <script type="application/ld+json" id="jsonld-data"></script>
 </head>
 <body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a href="/" class="site-logo">
+        <span class="logo-icon">◆</span>
+        <span>inference price index</span>
+      </a>
+      <nav class="site-nav">
+        <ul class="nav-links">
+          <li><a href="/">home</a></li>
+          <li><a href="/intelligence.html" class="active">intelligence</a></li>
+          <li><a href="/compare.html">compare</a></li>
+          <li><a href="/docs.html">api</a></li>
+        </ul>
+        <div class="site-branding">
+          <span>created by</span>
+          <a href="https://intentsolutions.io" target="_blank" rel="noopener">intent solutions io</a>
+        </div>
+      </nav>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="nav-mobile" id="nav-mobile">
+    <ul class="nav-mobile-links">
+      <li><a href="/">home</a></li>
+      <li><a href="/intelligence.html" class="active">intelligence</a></li>
+      <li><a href="/compare.html">compare</a></li>
+      <li><a href="/docs.html">api</a></li>
+    </ul>
+    <div class="nav-mobile-branding">
+      created by <a href="https://intentsolutions.io" target="_blank" rel="noopener">intent solutions io</a>
+    </div>
+  </nav>
+
   <div class="container intel-container">
     <!-- Hero Section -->
     <header class="hero intel-hero">
@@ -518,17 +556,23 @@
       <a href="https://github.com/intent-solutions-io/stci-standard-inference-token-cost-index" target="_blank" rel="noopener noreferrer">GitHub</a>
     </div>
     </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <p>Data collected daily from official pricing pages. Not financial advice.</p>
-      <p class="legal-links">
-        <a href="/privacy.html">Privacy Policy</a> |
-        <a href="/terms.html">Terms of Service</a>
-      </p>
-      <p class="copyright">&copy; 2026 Intent Solutions. All rights reserved.</p>
-    </footer>
   </div>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div class="footer-contact">
+        <p class="footer-contact-label">contact</p>
+        <p>questions? reach out at <a href="mailto:jeremy@intentsolutions.io">jeremy@intentsolutions.io</a></p>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 intent solutions io</span>
+        <span class="footer-separator">·</span>
+        <a href="/privacy.html">privacy</a>
+        <span class="footer-separator">·</span>
+        <a href="/terms.html">terms</a>
+      </div>
+    </div>
+  </footer>
 
   <!-- Vendor scripts (loaded before main script) -->
   <script src="vendor/chart.umd.min.js"></script>
@@ -537,5 +581,16 @@
 
   <!-- Main intelligence script -->
   <script src="intelligence.js"></script>
+  <script>
+    // Mobile nav toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const navMobile = document.getElementById('nav-mobile');
+    if (navToggle && navMobile) {
+      navToggle.addEventListener('click', () => {
+        const isOpen = navMobile.classList.toggle('open');
+        navToggle.setAttribute('aria-expanded', isOpen);
+      });
+    }
+  </script>
 </body>
 </html>

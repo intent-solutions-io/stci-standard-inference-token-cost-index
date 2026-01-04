@@ -261,14 +261,17 @@
 
       const family = event.modelFamily || 'other';
       if (!datasets[family]) {
+        const color = CONFIG.chartColors[family] || CONFIG.chartColors.other;
         datasets[family] = {
           label: family.toUpperCase().replace(/-/g, ' '),
           data: [],
-          borderColor: CONFIG.chartColors[family] || CONFIG.chartColors.other,
-          backgroundColor: (CONFIG.chartColors[family] || CONFIG.chartColors.other) + '20',
+          borderColor: color,
+          backgroundColor: color + '15',
+          fill: true,
           tension: 0.3,
-          pointRadius: 6,
-          pointHoverRadius: 8
+          pointRadius: 5,
+          pointHoverRadius: 8,
+          borderWidth: 2
         };
       }
 

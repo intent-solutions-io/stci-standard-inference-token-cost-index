@@ -8,6 +8,45 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a href="/" class="site-logo">
+        <span class="logo-icon">◆</span>
+        <span>inference price index</span>
+      </a>
+      <nav class="site-nav">
+        <ul class="nav-links">
+          <li><a href="/" class="active">home</a></li>
+          <li><a href="/intelligence.html">intelligence</a></li>
+          <li><a href="/compare.html">compare</a></li>
+          <li><a href="/docs.html">api</a></li>
+        </ul>
+        <div class="site-branding">
+          <span>created by</span>
+          <a href="https://intentsolutions.io" target="_blank" rel="noopener">intent solutions io</a>
+        </div>
+      </nav>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="nav-mobile" id="nav-mobile">
+    <ul class="nav-mobile-links">
+      <li><a href="/" class="active">home</a></li>
+      <li><a href="/intelligence.html">intelligence</a></li>
+      <li><a href="/compare.html">compare</a></li>
+      <li><a href="/docs.html">api</a></li>
+    </ul>
+    <div class="nav-mobile-branding">
+      created by <a href="https://intentsolutions.io" target="_blank" rel="noopener">intent solutions io</a>
+    </div>
+  </nav>
+
+  <main>
   <div class="container">
     <header class="hero">
       <h1>Inference Price Index</h1>
@@ -19,19 +58,22 @@
         <h3>Frontier</h3>
         <div class="value" id="frontier-value">--</div>
         <div class="change" id="frontier-change"></div>
-        <div class="desc">GPT-5, Claude Opus, Gemini Pro</div>
+        <div class="desc">GPT-4o, Claude Opus, Gemini Pro</div>
+        <div class="explainer" id="frontier-explainer">Top-tier models for complex reasoning</div>
       </div>
       <div class="index-card">
         <h3>Efficient</h3>
         <div class="value" id="efficient-value">--</div>
         <div class="change" id="efficient-change"></div>
         <div class="desc">Haiku, Flash, Mini models</div>
+        <div class="explainer" id="efficient-explainer">~6x cheaper, ideal for high-volume</div>
       </div>
       <div class="index-card">
         <h3>Open</h3>
         <div class="value" id="open-value">--</div>
         <div class="change" id="open-change"></div>
         <div class="desc">Llama, DeepSeek, Qwen</div>
+        <div class="explainer" id="open-explainer">Self-host option, flexible deployment</div>
       </div>
     </section>
 
@@ -42,19 +84,37 @@
       <p>Each index shows the <strong>average cost per 1 million tokens</strong> (blended input/output) across models in that tier. Updated daily from OpenAI, Anthropic, Google, and OpenRouter pricing.</p>
     </section>
 
+    <section class="section why-matters">
+      <h2>Why This Matters</h2>
+      <div class="tier-grid">
+        <div class="tier">
+          <h3>For CTOs</h3>
+          <p>Track pricing deflation to optimize cloud budgets. LLM costs have dropped 90%+ since 2023 - are your contracts keeping pace?</p>
+        </div>
+        <div class="tier">
+          <h3>For Developers</h3>
+          <p>Find the cheapest model for your use case. Compare frontier quality vs efficient-tier cost savings in real time.</p>
+        </div>
+        <div class="tier">
+          <h3>For Finance</h3>
+          <p>Forecast AI costs with historical trend data. Build accurate projections based on 19+ pricing events across providers.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="section tiers">
       <h2>The Three Tiers</h2>
       <div class="tier-grid">
         <div class="tier">
-          <h4>Frontier</h4>
+          <h3>Frontier</h3>
           <p>Top-tier reasoning models. Best for complex tasks, coding, and analysis. Highest capability, highest cost.</p>
         </div>
         <div class="tier">
-          <h4>Efficient</h4>
+          <h3>Efficient</h3>
           <p>Optimized for speed and cost. Great for chat, summarization, and simple tasks. Approximately 6x cheaper than Frontier.</p>
         </div>
         <div class="tier">
-          <h4>Open</h4>
+          <h3>Open</h3>
           <p>Open-weight models you can self-host. Competitive quality with transparent weights and flexible deployment.</p>
         </div>
       </div>
@@ -76,17 +136,38 @@
       <a href="/v1/methodology">Methodology</a>
       <a href="https://github.com/intent-solutions-io/stci-standard-inference-token-cost-index" target="_blank" rel="noopener noreferrer">GitHub</a>
     </div>
-
-    <footer class="footer">
-      <p>Data collected daily from official pricing pages. Not financial advice.</p>
-      <p class="legal-links">
-        <a href="/privacy.html">Privacy Policy</a> |
-        <a href="/terms.html">Terms of Service</a>
-      </p>
-      <p class="copyright">&copy; 2026 Intent Solutions. All rights reserved.</p>
-    </footer>
   </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div class="footer-contact">
+        <p class="footer-contact-label">contact</p>
+        <p>questions? reach out at <a href="mailto:jeremy@intentsolutions.io">jeremy@intentsolutions.io</a></p>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 intent solutions io</span>
+        <span class="footer-separator">·</span>
+        <a href="/privacy.html">privacy</a>
+        <span class="footer-separator">·</span>
+        <a href="/terms.html">terms</a>
+        <span class="footer-separator">·</span>
+        <span>data collected daily from official pricing pages</span>
+      </div>
+    </div>
+  </footer>
 
   <script src="app.js?v=3"></script>
+  <script>
+    // Mobile nav toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const navMobile = document.getElementById('nav-mobile');
+    if (navToggle && navMobile) {
+      navToggle.addEventListener('click', () => {
+        const isOpen = navMobile.classList.toggle('open');
+        navToggle.setAttribute('aria-expanded', isOpen);
+      });
+    }
+  </script>
 </body>
 </html>
