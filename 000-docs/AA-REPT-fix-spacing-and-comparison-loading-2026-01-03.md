@@ -228,6 +228,34 @@ Consider maintaining a canonical model ID mapping file that both the collector a
 
 ---
 
+## Validation Tests Added
+
+### `tests/test_comparison.py`
+- Unit tests for `normalizeModelId()` function
+- Tests that different models (16k, :extended) are NOT incorrectly aliased
+- Tests that same models with different naming ARE matched
+- Markup bounds validation (>150% = likely wrong match)
+
+### `.github/workflows/validate-comparison.yml`
+- Runs daily at 00:45 UTC (after pipeline)
+- Validates live comparison data
+- Fails if:
+  - Less than 5 overlapping models
+  - Any markup exceeds 150%
+
+### Key Test Cases
+```python
+# Must NOT match (different products)
+('gpt-3.5-turbo', 'gpt-3.5-turbo-16k')
+('gpt-4o', 'gpt-4o:extended')
+
+# MUST match (same product, different naming)
+('openai/gpt-4o', 'gpt-4o')
+('gpt-4o-2024-11-20', 'gpt-4o')
+```
+
+---
+
 ## Status
 
 - [x] CSS spacing fixed for mobile
@@ -235,3 +263,5 @@ Consider maintaining a canonical model ID mapping file that both the collector a
 - [x] Table loads with 7 model comparisons
 - [x] Deployed to production
 - [x] Report created
+- [x] Unit tests added
+- [x] CI validation workflow added
