@@ -429,8 +429,48 @@ body {
   text-align: center;
   color: var(--text-secondary);
   font-size: 0.875rem;
-  margin: 2rem 0 4rem;
+  margin: 2rem 0 1.5rem;
   font-weight: 400;
+}
+
+/* Provider badges */
+.provider-badges {
+  text-align: center;
+  margin: 0 0 4rem;
+}
+
+.provider-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.provider-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.provider-badge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.provider-badge:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+  background: var(--card-hover);
 }
 
 /* Sections */
