@@ -28,6 +28,13 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Mail collection for Firebase Extension (Trigger Email)
+    match /mail/{docId} {
+      allow read: if false;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;

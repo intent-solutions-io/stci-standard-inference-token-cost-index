@@ -1038,13 +1038,33 @@
       try {
         // Save to Firestore
         if (window.firebaseDb) {
-          const { db, doc, setDoc, serverTimestamp } = window.firebaseDb;
+          const { db, doc, setDoc, collection, addDoc, serverTimestamp } = window.firebaseDb;
           const emailId = email.replace(/[.#$\/\[\]]/g, '_');
+
+          // Save subscriber
           await setDoc(doc(db, 'subscribers', emailId), {
             email: email,
             preferences: prefs,
             createdAt: serverTimestamp(),
             source: 'intelligence-page'
+          });
+
+          // Trigger notification email via Firebase Extension
+          const prefsList = [];
+          if (prefs.critical) prefsList.push('Critical Alerts');
+          if (prefs.newModels) prefsList.push('New Models');
+          if (prefs.weekly) prefsList.push('Weekly Digest');
+
+          await addDoc(collection(db, 'mail'), {
+            to: 'jeremy@intentsolutions.io',
+            message: {
+              subject: 'New Subscriber - Inference Price Index',
+              text: `New subscriber: ${email}\n\nPreferences: ${prefsList.join(', ') || 'None selected'}\n\nSource: intelligence-page`,
+              html: `<h2>New Subscriber</h2>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Preferences:</strong> ${prefsList.join(', ') || 'None selected'}</p>
+                <p><strong>Source:</strong> intelligence-page</p>`
+            }
           });
         }
 
