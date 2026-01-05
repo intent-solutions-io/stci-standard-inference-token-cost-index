@@ -1716,6 +1716,164 @@ html {
   margin-bottom: 0.5rem;
 }
 
+/* Subscription vs API Break-Even */
+.intel-breakeven-section {
+  margin: 4rem 0;
+}
+
+.intel-breakeven-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.intel-breakeven-inputs,
+.intel-breakeven-results {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.breakeven-usage-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 0.5rem;
+}
+
+#breakeven-tokens-value {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 1.25rem;
+}
+
+.breakeven-context {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.breakeven-presets {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.breakeven-preset {
+  padding: 0.5rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.breakeven-preset:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.breakeven-verdict {
+  padding: 1.5rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.breakeven-verdict.subscription-wins {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: var(--accent);
+}
+
+.breakeven-verdict.api-wins {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--accent-blue);
+}
+
+.verdict-icon {
+  font-size: 2rem;
+}
+
+.verdict-text strong {
+  display: block;
+  font-size: 1.125rem;
+  margin-bottom: 0.25rem;
+}
+
+.verdict-text span {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.breakeven-comparison {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.breakeven-option h4 {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.breakeven-cost {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.breakeven-vs {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.breakeven-threshold {
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.breakeven-threshold p {
+  margin: 0.5rem 0;
+}
+
+.breakeven-context-hint {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.intel-breakeven-chart {
+  margin-top: 2rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.intel-breakeven-chart h3 {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.intel-breakeven-chart > p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
 /* Market Snapshot */
 .intel-snapshot-section {
   margin: 4rem 0;
@@ -2094,6 +2252,10 @@ html {
   }
 
   .intel-calc-container {
+    grid-template-columns: 1fr;
+  }
+
+  .intel-breakeven-container {
     grid-template-columns: 1fr;
   }
 

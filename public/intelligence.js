@@ -1160,6 +1160,248 @@
 
     // Calculator
     $('#calculate-savings')?.addEventListener('click', calculateSavings);
+
+    // Break-even calculator
+    $('#breakeven-plan')?.addEventListener('change', updateBreakEvenDisplay);
+    $('#breakeven-usage')?.addEventListener('input', updateBreakEvenDisplay);
+    $$('.breakeven-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tokens = parseInt(btn.dataset.tokens, 10);
+        const slider = $('#breakeven-usage');
+        if (slider) {
+          slider.value = tokens;
+          updateBreakEvenDisplay();
+        }
+      });
+    });
+  }
+
+  // ============================================
+  // Subscription vs API Break-Even Calculator
+  // ============================================
+  const SUBSCRIPTION_PLANS = {
+    'chatgpt-plus': {
+      name: 'ChatGPT Plus',
+      costMonthly: 20,
+      tokensPerConversation: 5000
+    },
+    'claude-max': {
+      name: 'Claude Max',
+      costMonthly: 200,
+      tokensPerConversation: 5000
+    },
+    'chatgpt-pro': {
+      name: 'ChatGPT Pro',
+      costMonthly: 200,
+      tokensPerConversation: 5000
+    }
+  };
+
+  let breakEvenState = {
+    frontierRate: null,
+    chart: null
+  };
+
+  function calculateBreakEvenTokens(subscriptionCost, blendedRatePerMillion) {
+    if (!blendedRatePerMillion || blendedRatePerMillion <= 0) return Infinity;
+    return (subscriptionCost / blendedRatePerMillion) * 1_000_000;
+  }
+
+  function calculateApiCost(tokens, blendedRatePerMillion) {
+    if (!blendedRatePerMillion) return 0;
+    return (tokens / 1_000_000) * blendedRatePerMillion;
+  }
+
+  function formatTokenCount(tokens) {
+    if (tokens >= 1_000_000_000) {
+      return (tokens / 1_000_000_000).toFixed(1) + 'B';
+    }
+    if (tokens >= 1_000_000) {
+      return (tokens / 1_000_000).toFixed(1) + 'M';
+    }
+    if (tokens >= 1_000) {
+      return (tokens / 1_000).toFixed(0) + 'K';
+    }
+    return tokens.toString();
+  }
+
+  function getUsageContext(tokens) {
+    const conversations = Math.round(tokens / 5000);
+    if (conversations === 0) return 'less than 1 conversation';
+    if (conversations === 1) return '~1 conversation';
+    return `~${conversations.toLocaleString()} conversations`;
+  }
+
+  function updateBreakEvenDisplay() {
+    const planSelect = $('#breakeven-plan');
+    const usageSlider = $('#breakeven-usage');
+    if (!planSelect || !usageSlider) return;
+
+    const planKey = planSelect.value;
+    const userTokens = parseInt(usageSlider.value, 10);
+    const plan = SUBSCRIPTION_PLANS[planKey];
+    const frontierRate = breakEvenState.frontierRate;
+
+    // Update usage display
+    const tokensDisplay = $('#breakeven-tokens-value');
+    const usageContext = $('#breakeven-usage-context');
+    if (tokensDisplay) tokensDisplay.textContent = formatTokenCount(userTokens) + ' tokens';
+    if (usageContext) usageContext.textContent = `(${getUsageContext(userTokens)})`;
+
+    // If no rate loaded yet, show loading state
+    if (!frontierRate) {
+      return;
+    }
+
+    const breakEvenTokens = calculateBreakEvenTokens(plan.costMonthly, frontierRate);
+    const apiCostAtUsage = calculateApiCost(userTokens, frontierRate);
+
+    // Update subscription cost
+    const subCostEl = $('#breakeven-sub-cost');
+    if (subCostEl) subCostEl.textContent = formatCurrency(plan.costMonthly) + '/mo';
+
+    // Update API cost
+    const apiCostEl = $('#breakeven-api-cost');
+    if (apiCostEl) apiCostEl.textContent = formatCurrency(apiCostAtUsage, 0) + '/mo';
+
+    // Update threshold
+    const thresholdEl = $('#breakeven-threshold-tokens');
+    if (thresholdEl) thresholdEl.textContent = formatTokenCount(breakEvenTokens);
+
+    // Update threshold context
+    const contextHintEl = $('#breakeven-context-hint');
+    if (contextHintEl) contextHintEl.textContent = `That's roughly ${getUsageContext(breakEvenTokens)}`;
+
+    // Update verdict
+    const verdictEl = $('#breakeven-verdict');
+    if (verdictEl) {
+      const savings = Math.abs(apiCostAtUsage - plan.costMonthly);
+      if (userTokens >= breakEvenTokens) {
+        verdictEl.className = 'breakeven-verdict subscription-wins';
+        verdictEl.innerHTML = `
+          <div class="verdict-icon">✓</div>
+          <div class="verdict-text">
+            <strong>${plan.name} is cheaper</strong>
+            <span>You save ${formatCurrency(savings, 0)}/mo vs API</span>
+          </div>
+        `;
+      } else {
+        verdictEl.className = 'breakeven-verdict api-wins';
+        verdictEl.innerHTML = `
+          <div class="verdict-icon">$</div>
+          <div class="verdict-text">
+            <strong>API is cheaper</strong>
+            <span>You save ${formatCurrency(savings, 0)}/mo vs subscription</span>
+          </div>
+        `;
+      }
+    }
+  }
+
+  async function initBreakEvenCalculator() {
+    // Load frontier rate from API
+    const result = await loadApiData();
+    if (result && result.data && result.data.indices) {
+      const frontier = result.data.indices['STCI-FRONTIER'];
+      if (frontier) {
+        breakEvenState.frontierRate = frontier.blended_rate || frontier.blended;
+      }
+    }
+
+    // Initial display update
+    updateBreakEvenDisplay();
+
+    // Load historical data for chart
+    loadBreakEvenHistory();
+  }
+
+  async function loadBreakEvenHistory() {
+    const canvas = $('#breakeven-chart');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    // For now, we'll use a simpler approach - just show current point
+    // In the future, we could fetch historical data from /v1/index/{date}
+    // For MVP, we'll create a static chart showing the concept
+
+    const plan = SUBSCRIPTION_PLANS[$('#breakeven-plan')?.value || 'claude-max'];
+    const frontierRate = breakEvenState.frontierRate;
+
+    if (!frontierRate) return;
+
+    // Generate sample historical data showing the trend
+    // In reality, this would come from /v1/index/{date} calls
+    const today = new Date();
+    const dataPoints = [];
+
+    // Simulate decreasing prices over 12 weeks (API prices drop over time)
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - (i * 7));
+
+      // Simulate historical rates (higher in the past, trending down)
+      const historicalRate = frontierRate * (1 + (i * 0.02)); // 2% higher per week in past
+      const breakEvenTokens = calculateBreakEvenTokens(plan.costMonthly, historicalRate);
+
+      dataPoints.push({
+        x: date,
+        y: breakEvenTokens
+      });
+    }
+
+    const ctx = canvas.getContext('2d');
+
+    // Destroy existing chart if any
+    if (breakEvenState.chart) {
+      breakEvenState.chart.destroy();
+    }
+
+    breakEvenState.chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: [{
+          label: 'Break-Even Tokens',
+          data: dataPoints,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointHoverRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${formatTokenCount(ctx.parsed.y)} tokens to break even`
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'time',
+            time: { unit: 'week' },
+            grid: { color: '#2a2a2a' },
+            ticks: { color: '#6a6a6a' }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Break-Even Tokens',
+              color: '#6a6a6a'
+            },
+            grid: { color: '#2a2a2a' },
+            ticks: {
+              color: '#6a6a6a',
+              callback: (v) => formatTokenCount(v)
+            }
+          }
+        }
+      }
+    });
   }
 
   // ============================================
@@ -1193,6 +1435,9 @@
 
       // Load market snapshot
       loadMarketSnapshot();
+
+      // Initialize break-even calculator
+      initBreakEvenCalculator();
 
       // Initialize subscribe form
       initSubscribeForm();

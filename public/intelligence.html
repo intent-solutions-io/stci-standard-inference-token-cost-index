@@ -320,6 +320,79 @@
       </div>
     </section>
 
+    <!-- Subscription vs API Break-Even Calculator -->
+    <section class="section intel-breakeven-section" id="breakeven">
+      <h2>Subscription vs API Break-Even</h2>
+      <p>Calculate when a flat-rate subscription becomes cheaper than pay-per-token API pricing.</p>
+
+      <div class="intel-breakeven-container">
+        <!-- Left: Interactive Controls -->
+        <div class="intel-breakeven-inputs">
+          <div class="intel-calc-field">
+            <label for="breakeven-plan">Subscription Plan</label>
+            <select id="breakeven-plan" class="intel-filter-select">
+              <option value="chatgpt-plus">ChatGPT Plus ($20/mo)</option>
+              <option value="claude-max" selected>Claude Max ($200/mo)</option>
+              <option value="chatgpt-pro">ChatGPT Pro ($200/mo)</option>
+            </select>
+          </div>
+
+          <div class="intel-calc-field">
+            <label for="breakeven-usage">Your Monthly Token Usage</label>
+            <input type="range" id="breakeven-usage" min="1000000" max="100000000" value="20000000" step="1000000">
+            <div class="breakeven-usage-display">
+              <span id="breakeven-tokens-value">20M tokens</span>
+              <span class="breakeven-context" id="breakeven-usage-context">(~4,000 conversations)</span>
+            </div>
+          </div>
+
+          <div class="breakeven-presets">
+            <button class="btn-text breakeven-preset" data-tokens="5000000">Light (5M)</button>
+            <button class="btn-text breakeven-preset" data-tokens="20000000">Medium (20M)</button>
+            <button class="btn-text breakeven-preset" data-tokens="50000000">Heavy (50M)</button>
+            <button class="btn-text breakeven-preset" data-tokens="100000000">Power (100M)</button>
+          </div>
+        </div>
+
+        <!-- Right: Results Display -->
+        <div class="intel-breakeven-results">
+          <div class="breakeven-verdict" id="breakeven-verdict">
+            <div class="verdict-icon">⏳</div>
+            <div class="verdict-text">
+              <strong>Loading...</strong>
+              <span>Fetching current API rates</span>
+            </div>
+          </div>
+
+          <div class="breakeven-comparison">
+            <div class="breakeven-option">
+              <h4>Subscription</h4>
+              <div class="breakeven-cost" id="breakeven-sub-cost">$200/mo</div>
+            </div>
+            <div class="breakeven-vs">vs</div>
+            <div class="breakeven-option">
+              <h4>API (STCI-FRONTIER)</h4>
+              <div class="breakeven-cost" id="breakeven-api-cost">$--/mo</div>
+            </div>
+          </div>
+
+          <div class="breakeven-threshold">
+            <p>Break-even at: <strong id="breakeven-threshold-tokens">--</strong> tokens/month</p>
+            <p class="breakeven-context-hint" id="breakeven-context-hint">That's roughly -- conversations</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historical Chart: Break-even Over Time -->
+      <div class="intel-breakeven-chart">
+        <h3>Break-Even Threshold Over Time</h3>
+        <p>As API prices drop, you need more usage to justify subscriptions.</p>
+        <div class="intel-chart-wrapper" style="height: 250px;">
+          <canvas id="breakeven-chart" aria-label="Break-even threshold over time chart"></canvas>
+        </div>
+      </div>
+    </section>
+
     <!-- Market Snapshot -->
     <section class="section intel-snapshot-section" id="snapshot">
       <h2>Current Market Snapshot</h2>
