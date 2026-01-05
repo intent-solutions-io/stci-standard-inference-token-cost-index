@@ -18,6 +18,7 @@
     cacheTTL: 60 * 60 * 1000, // 1 hour
     eventsPerPage: 10,
     debounceMs: 300,
+    notificationEmail: 'jeremy@intentsolutions.io',
     chartColors: {
       'gpt-4': '#10b981',
       'gpt-4o': '#34d399',
@@ -1064,12 +1065,13 @@
           });
 
           // Trigger notification email via Firebase Extension
+          const safeEmailText = email.replace(/[\r\n]/g, ' ');
           const mailRef = doc(collection(db, 'mail'));
           batch.set(mailRef, {
-            to: 'jeremy@intentsolutions.io',
+            to: CONFIG.notificationEmail,
             message: {
               subject: 'New Subscriber - Inference Price Index',
-              text: `New subscriber: ${email}\n\nPreferences: ${prefsText}\n\nSource: intelligence-page`,
+              text: `New subscriber: ${safeEmailText}\n\nPreferences: ${prefsText}\n\nSource: intelligence-page`,
               html: `<h2>New Subscriber</h2>
                 <p><strong>Email:</strong> ${safeEmail}</p>
                 <p><strong>Preferences:</strong> ${prefsText}</p>
