@@ -73,6 +73,8 @@ data/raw/
 
 # Firebase
 .firebase/
+extensions/*.env
+extensions/*.env.local
 
 # Node.js
 node_modules/

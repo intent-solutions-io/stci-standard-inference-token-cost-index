@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "stci-production"
+  },
+  "targets": {},
+  "etags": {
+    "stci-production": {
+      "extensionInstances": {
+        "firestore-send-email": "d6db914b301ce5e06b98acd2985ed4e3c2232b4fa57a94a9cc854094778a4a8f"
+      }
+    }
   }
 }
