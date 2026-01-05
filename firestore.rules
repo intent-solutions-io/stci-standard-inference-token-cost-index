@@ -28,6 +28,16 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Mail collection for Firebase Extension (Trigger Email)
+    match /mail/{docId} {
+      allow read: if false;
+      allow create: if request.resource.data.keys().hasAll(['to', 'message']) &&
+                    request.resource.data.to in ['jeremy@intentsolutions.io'] &&
+                    request.resource.data.message is map &&
+                    request.resource.data.message.keys().hasAny(['subject', 'text', 'html']);
+      allow update, delete: if false;
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;

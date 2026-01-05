@@ -18,6 +18,7 @@
     cacheTTL: 60 * 60 * 1000, // 1 hour
     eventsPerPage: 10,
     debounceMs: 300,
+    notificationEmail: 'jeremy@intentsolutions.io',
     chartColors: {
       'gpt-4': '#10b981',
       'gpt-4o': '#34d399',
@@ -1038,14 +1039,47 @@
       try {
         // Save to Firestore
         if (window.firebaseDb) {
-          const { db, doc, setDoc, serverTimestamp } = window.firebaseDb;
+          const { db, doc, setDoc, collection, writeBatch, serverTimestamp } = window.firebaseDb;
           const emailId = email.replace(/[.#$\/\[\]]/g, '_');
-          await setDoc(doc(db, 'subscribers', emailId), {
+
+          // Escape email for HTML to prevent XSS
+          const safeEmail = email.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+          // Build preference list
+          const prefsList = [];
+          if (prefs.critical) prefsList.push('Critical Alerts');
+          if (prefs.newModels) prefsList.push('New Models');
+          if (prefs.weekly) prefsList.push('Weekly Digest');
+          const prefsText = prefsList.join(', ') || 'None selected';
+
+          // Use batched write for atomicity
+          const batch = writeBatch(db);
+
+          // Save subscriber
+          const subscriberRef = doc(db, 'subscribers', emailId);
+          batch.set(subscriberRef, {
             email: email,
             preferences: prefs,
             createdAt: serverTimestamp(),
             source: 'intelligence-page'
           });
+
+          // Trigger notification email via Firebase Extension
+          const safeEmailText = email.replace(/[\r\n]/g, ' ');
+          const mailRef = doc(collection(db, 'mail'));
+          batch.set(mailRef, {
+            to: CONFIG.notificationEmail,
+            message: {
+              subject: 'New Subscriber - Inference Price Index',
+              text: `New subscriber: ${safeEmailText}\n\nPreferences: ${prefsText}\n\nSource: intelligence-page`,
+              html: `<h2>New Subscriber</h2>
+                <p><strong>Email:</strong> ${safeEmail}</p>
+                <p><strong>Preferences:</strong> ${prefsText}</p>
+                <p><strong>Source:</strong> intelligence-page</p>`
+            }
+          });
+
+          await batch.commit();
         }
 
         btn.textContent = 'Subscribed!';
