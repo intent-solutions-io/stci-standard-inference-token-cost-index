@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Usage Dashboard | Inference Price Index</title>
+  <meta name="description" content="Track your enterprise LLM API usage, effective rates, and benchmark against market prices.">
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a href="/" class="site-logo">
+        <span class="logo-icon">📊</span>
+        <span>Inference Price Index</span>
+      </a>
+      <nav class="site-nav">
+        <ul class="nav-links">
+          <li><a href="/">Index</a></li>
+          <li><a href="/intelligence.html">Intelligence</a></li>
+          <li><a href="/enterprise.html" class="active">Enterprise</a></li>
+          <li><a href="/docs.html">API</a></li>
+        </ul>
+        <div class="site-branding">
+          by <a href="https://intentsolutions.io" target="_blank">intent solutions</a>
+        </div>
+      </nav>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation -->
+  <nav class="nav-mobile" id="nav-mobile">
+    <ul class="nav-mobile-links">
+      <li><a href="/">Index</a></li>
+      <li><a href="/intelligence.html">Intelligence</a></li>
+      <li><a href="/enterprise.html" class="active">Enterprise</a></li>
+      <li><a href="/docs.html">API</a></li>
+    </ul>
+    <div class="nav-mobile-branding">
+      by <a href="https://intentsolutions.io" target="_blank">intent solutions</a>
+    </div>
+  </nav>
+
+  <div class="container intel-container">
+    <!-- Hero -->
+    <section class="hero intel-hero">
+      <h1>Enterprise Usage Dashboard</h1>
+      <p class="hero-subtitle">Track your effective rates. Benchmark against the market. Optimize your spend.</p>
+    </section>
+
+    <!-- Connect Flow (shown when not connected) -->
+    <section class="section enterprise-connect-section" id="connect-section">
+      <h2>Connect Your Providers</h2>
+      <p>Connect your LLM provider accounts to start tracking usage and benchmarking your rates.</p>
+
+      <div class="enterprise-provider-grid">
+        <!-- OpenAI -->
+        <div class="enterprise-provider-card" id="openai-card">
+          <div class="provider-header">
+            <div class="provider-logo">OpenAI</div>
+            <span class="provider-status" id="openai-status">Not Connected</span>
+          </div>
+          <p>Track GPT-4, GPT-4o, and other OpenAI model usage.</p>
+          <div class="provider-connect-form" id="openai-form">
+            <label for="openai-key">Admin API Key</label>
+            <input type="password" id="openai-key" placeholder="sk-admin-..." autocomplete="off">
+            <p class="provider-help">
+              <a href="https://platform.openai.com/settings/organization/api-keys" target="_blank">Get your Admin API Key</a>
+              - requires Organization Admin access
+            </p>
+            <button class="btn btn-primary" id="openai-connect-btn">Connect OpenAI</button>
+          </div>
+          <div class="provider-connected" id="openai-connected" style="display: none;">
+            <span class="connected-badge">Connected</span>
+            <button class="btn btn-text" id="openai-sync-btn">Sync Now</button>
+          </div>
+        </div>
+
+        <!-- Anthropic -->
+        <div class="enterprise-provider-card" id="anthropic-card">
+          <div class="provider-header">
+            <div class="provider-logo">Anthropic</div>
+            <span class="provider-status" id="anthropic-status">Not Connected</span>
+          </div>
+          <p>Track Claude Sonnet, Opus, and Haiku model usage.</p>
+          <div class="provider-connect-form" id="anthropic-form">
+            <label for="anthropic-key">Admin API Key</label>
+            <input type="password" id="anthropic-key" placeholder="sk-ant-admin-..." autocomplete="off">
+            <p class="provider-help">
+              <a href="https://console.anthropic.com/settings/admin-keys" target="_blank">Get your Admin API Key</a>
+              - requires Workspace Admin access
+            </p>
+            <button class="btn btn-primary" id="anthropic-connect-btn">Connect Anthropic</button>
+          </div>
+          <div class="provider-connected" id="anthropic-connected" style="display: none;">
+            <span class="connected-badge">Connected</span>
+            <button class="btn btn-text" id="anthropic-sync-btn">Sync Now</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="enterprise-security-note">
+        <strong>Security:</strong> Your API keys are encrypted and stored in Google Secret Manager.
+        We only request read-only usage data. Keys are never logged or exposed.
+      </div>
+    </section>
+
+    <!-- Dashboard (shown when connected) -->
+    <section class="section enterprise-dashboard-section" id="dashboard-section" style="display: none;">
+      <h2>Your Usage Dashboard</h2>
+
+      <!-- Effective Rate Card -->
+      <div class="enterprise-rate-card">
+        <div class="rate-main">
+          <div class="rate-your">
+            <span class="rate-label">Your Effective Rate</span>
+            <span class="rate-value" id="your-rate">--</span>
+            <span class="rate-unit">/1M tokens (blended)</span>
+          </div>
+          <div class="rate-vs">vs</div>
+          <div class="rate-market">
+            <span class="rate-label">Market Rate (STCI-FRONTIER)</span>
+            <span class="rate-value" id="market-rate">--</span>
+            <span class="rate-unit">/1M tokens</span>
+          </div>
+        </div>
+        <div class="rate-discount">
+          <span class="discount-badge" id="discount-badge">--% below market</span>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="enterprise-stats-grid">
+        <div class="enterprise-stat-card">
+          <span class="stat-label">This Month Spend</span>
+          <span class="stat-value" id="month-spend">$--</span>
+        </div>
+        <div class="enterprise-stat-card">
+          <span class="stat-label">Input Tokens</span>
+          <span class="stat-value" id="input-tokens">--</span>
+        </div>
+        <div class="enterprise-stat-card">
+          <span class="stat-label">Output Tokens</span>
+          <span class="stat-value" id="output-tokens">--</span>
+        </div>
+        <div class="enterprise-stat-card">
+          <span class="stat-label">Requests</span>
+          <span class="stat-value" id="request-count">--</span>
+        </div>
+      </div>
+
+      <!-- Usage Chart -->
+      <div class="enterprise-chart-wrapper">
+        <h3>Daily Usage</h3>
+        <canvas id="usage-chart" height="300"></canvas>
+      </div>
+
+      <!-- Benchmark Section -->
+      <div class="enterprise-benchmark-section">
+        <h3>Anonymous Benchmark</h3>
+        <p>See how your rates compare to other enterprises (opt-in).</p>
+
+        <div class="benchmark-visualization" id="benchmark-viz">
+          <div class="benchmark-bar">
+            <div class="benchmark-marker" id="your-marker" style="left: 50%;"></div>
+            <div class="benchmark-labels">
+              <span class="label-p10">p10</span>
+              <span class="label-p25">p25</span>
+              <span class="label-p50">p50</span>
+              <span class="label-p75">p75</span>
+              <span class="label-p90">p90</span>
+            </div>
+          </div>
+          <p class="benchmark-result" id="benchmark-result">
+            Your rate is better than <strong>--</strong> of enterprises
+          </p>
+        </div>
+
+        <label class="enterprise-checkbox">
+          <input type="checkbox" id="share-benchmarks">
+          Share my anonymous data to improve benchmarks
+        </label>
+      </div>
+
+      <!-- Optimization Tips -->
+      <div class="enterprise-optimization-section">
+        <h3>Optimization Opportunities</h3>
+        <div class="optimization-grid" id="optimization-tips">
+          <div class="optimization-card">
+            <span class="opt-icon">💾</span>
+            <div class="opt-content">
+              <strong>Cache Hit Rate: <span id="cache-rate">--</span></strong>
+              <p>Increase caching to reduce costs.</p>
+            </div>
+          </div>
+          <div class="optimization-card">
+            <span class="opt-icon">📦</span>
+            <div class="opt-content">
+              <strong>Batch Usage: <span id="batch-rate">--</span></strong>
+              <p>Use batch API for non-urgent requests.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="enterprise-actions">
+        <button class="btn btn-primary" id="sync-all-btn">Sync All Providers</button>
+        <button class="btn btn-secondary" id="export-btn">Export Report</button>
+      </div>
+    </section>
+
+    <!-- Enterprise ID Display -->
+    <section class="section enterprise-id-section" id="enterprise-id-section" style="display: none;">
+      <div class="enterprise-id-card">
+        <h4>Your Enterprise ID</h4>
+        <code id="enterprise-id-display">--</code>
+        <p>Use this with the Authorization header: <code>Bearer enterprise_{id}</code></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div class="footer-contact">
+        <p class="footer-contact-label">Questions or feedback?</p>
+        <a href="mailto:jeremy@intentsolutions.io">jeremy@intentsolutions.io</a>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 Inference Price Index</span>
+        <span class="footer-separator">|</span>
+        <a href="/privacy.html">Privacy</a>
+        <span class="footer-separator">|</span>
+        <a href="/terms.html">Terms</a>
+        <span class="footer-separator">|</span>
+        <span>by <a href="https://intentsolutions.io" target="_blank">intent solutions</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="vendor/chart.umd.min.js"></script>
+  <script src="enterprise.js"></script>
+</body>
+</html>

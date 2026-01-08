@@ -2292,3 +2292,462 @@ html {
     gap: 0.5rem;
   }
 }
+
+/* ============================================
+   Enterprise Dashboard Styles
+   ============================================ */
+
+/* Provider Connection Grid */
+.enterprise-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.enterprise-provider-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.enterprise-provider-card p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  text-align: left;
+  max-width: none;
+}
+
+.provider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.provider-logo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.provider-status {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.provider-status.connected {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--accent);
+}
+
+.provider-connect-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.provider-connect-form label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.provider-connect-form input {
+  padding: 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: monospace;
+}
+
+.provider-connect-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.provider-help {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.provider-help a {
+  color: var(--accent);
+}
+
+.provider-connected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.connected-badge {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--accent);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.enterprise-security-note {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.enterprise-security-note strong {
+  color: var(--accent);
+}
+
+/* Rate Card */
+.enterprise-rate-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.rate-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.rate-your,
+.rate-market {
+  text-align: center;
+}
+
+.rate-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.rate-value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rate-your .rate-value {
+  color: var(--accent);
+}
+
+.rate-unit {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.rate-vs {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+}
+
+.rate-discount {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.discount-badge {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.discount-badge.positive {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--accent);
+}
+
+.discount-badge.negative {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--accent-red);
+}
+
+/* Stats Grid */
+.enterprise-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.enterprise-stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.enterprise-stat-card .stat-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.enterprise-stat-card .stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Chart Wrapper */
+.enterprise-chart-wrapper {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.enterprise-chart-wrapper h3 {
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.enterprise-chart-wrapper canvas {
+  max-height: 300px;
+}
+
+/* Benchmark Section */
+.enterprise-benchmark-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.enterprise-benchmark-section h3 {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.enterprise-benchmark-section > p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+  max-width: none;
+}
+
+.benchmark-visualization {
+  margin: 1.5rem 0;
+}
+
+.benchmark-bar {
+  position: relative;
+  height: 40px;
+  background: linear-gradient(to right,
+    rgba(16, 185, 129, 0.3) 0%,
+    rgba(16, 185, 129, 0.2) 25%,
+    rgba(245, 158, 11, 0.2) 50%,
+    rgba(239, 68, 68, 0.2) 75%,
+    rgba(239, 68, 68, 0.3) 100%
+  );
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+}
+
+.benchmark-marker {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 50px;
+  background: var(--accent);
+  border-radius: 2px;
+  transform: translateX(-50%);
+}
+
+.benchmark-marker::after {
+  content: 'YOU';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.benchmark-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.benchmark-result {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-top: 1rem;
+}
+
+.benchmark-result strong {
+  color: var(--accent);
+}
+
+.enterprise-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.enterprise-checkbox input {
+  accent-color: var(--accent);
+}
+
+/* Optimization Section */
+.enterprise-optimization-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.enterprise-optimization-section h3 {
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.optimization-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.optimization-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+}
+
+.opt-icon {
+  font-size: 1.5rem;
+}
+
+.opt-content strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.opt-content p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+  text-align: left;
+  max-width: none;
+}
+
+/* Actions */
+.enterprise-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+/* Enterprise ID Card */
+.enterprise-id-section {
+  margin-top: 2rem;
+}
+
+.enterprise-id-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.enterprise-id-card h4 {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.enterprise-id-card code {
+  display: block;
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.enterprise-id-card p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .enterprise-provider-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .enterprise-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .rate-main {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .rate-vs {
+    display: none;
+  }
+
+  .optimization-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .enterprise-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .enterprise-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

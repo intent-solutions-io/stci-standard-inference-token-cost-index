@@ -8,6 +8,7 @@
     ],
     "rewrites": [
       { "source": "/v1/**", "function": "api" },
+      { "source": "/api/**", "function": "api" },
       { "source": "/health", "function": "api" }
     ],
     "headers": [
