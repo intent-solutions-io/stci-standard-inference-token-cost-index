@@ -174,20 +174,43 @@ function parseCSV(csvText) {
 }
 
 function parseCSVLine(line) {
+  // RFC 4180 compliant CSV parsing with escaped quote handling
   const result = [];
   let current = '';
   let inQuotes = false;
+  let i = 0;
 
-  for (let i = 0; i < line.length; i++) {
+  while (i < line.length) {
     const char = line[i];
-    if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === ',' && !inQuotes) {
-      result.push(current.trim());
-      current = '';
+
+    if (inQuotes) {
+      if (char === '"') {
+        // Check for escaped quote ("")
+        if (i + 1 < line.length && line[i + 1] === '"') {
+          current += '"';
+          i += 2;
+          continue;
+        } else {
+          // End of quoted field
+          inQuotes = false;
+          i++;
+          continue;
+        }
+      } else {
+        current += char;
+      }
     } else {
-      current += char;
+      if (char === '"') {
+        // Start of quoted field
+        inQuotes = true;
+      } else if (char === ',') {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
     }
+    i++;
   }
   result.push(current.trim());
   return result;
@@ -425,22 +448,19 @@ function calculateManual() {
 // Sample Data
 // ============================================
 
-function loadSampleData() {
-  // Sample OpenAI-like usage data
-  const sampleData = {
-    provider: 'Sample Data',
-    totalInput: 2_500_000,
-    totalOutput: 750_000,
-    totalCost: 45.00,
-    byModel: {
-      'gpt-4o': { inputTokens: 1_500_000, outputTokens: 500_000, cost: 30.00 },
-      'gpt-4o-mini': { inputTokens: 1_000_000, outputTokens: 250_000, cost: 15.00 },
-    },
-    effectiveRate: calculateEffectiveRate(2_500_000, 750_000, 45.00),
-  };
-
-  state.parsedData = sampleData;
-  displayResults(sampleData);
+async function loadSampleData() {
+  try {
+    const response = await fetch('/samples/openai-usage-sample.csv');
+    if (!response.ok) throw new Error('Could not load sample data.');
+    const csvText = await response.text();
+    const parsed = parseCSV(csvText);
+    // Override provider name for clarity in the UI
+    parsed.provider = 'Sample Data';
+    state.parsedData = parsed;
+    displayResults(parsed);
+  } catch (error) {
+    showError(error.message);
+  }
 }
 
 // ============================================
@@ -486,5 +506,31 @@ function escapeHtml(text) {
 }
 
 function showError(message) {
-  alert(message);
+  showToast(message, 'error');
+}
+
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) {
+    // Fallback to alert if container doesn't exist
+    alert(message);
+    return;
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  // Trigger animation
+  requestAnimationFrame(() => {
+    toast.classList.add('toast-visible');
+  });
+
+  // Auto-dismiss after 5 seconds
+  setTimeout(() => {
+    toast.classList.remove('toast-visible');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
 }
