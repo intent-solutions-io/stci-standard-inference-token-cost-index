@@ -1,37 +1,50 @@
 /**
- * Enterprise Usage Dashboard
+ * Enterprise Rate Benchmark - CSV Upload Edition
  *
- * Handles provider connections, usage tracking, and benchmarking.
+ * Processes usage CSVs entirely client-side. No data leaves the browser.
  */
 
-// State
-const enterpriseState = {
-  enterpriseId: null,
-  providers: {},
-  usage: null,
-  benchmark: null,
-  usageChart: null,
-};
+// Constants
+const OUTPUT_WEIGHT = 3; // 3:1 output:input ratio for blended rate
 
-// DOM Elements
-const connectSection = document.getElementById('connect-section');
-const dashboardSection = document.getElementById('dashboard-section');
-const enterpriseIdSection = document.getElementById('enterprise-id-section');
+// State
+const state = {
+  parsedData: null,
+  marketRate: null,
+};
 
 // ============================================
 // Initialization
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Check for stored enterprise ID
-  enterpriseState.enterpriseId = localStorage.getItem('enterpriseId');
+  setupEventListeners();
+  fetchMarketRate();
+});
 
-  if (enterpriseState.enterpriseId) {
-    loadDashboard();
+function setupEventListeners() {
+  // File upload
+  const uploadZone = document.getElementById('upload-zone');
+  const fileInput = document.getElementById('file-input');
+
+  if (uploadZone) {
+    uploadZone.addEventListener('dragover', handleDragOver);
+    uploadZone.addEventListener('dragleave', handleDragLeave);
+    uploadZone.addEventListener('drop', handleDrop);
   }
 
-  // Set up event listeners
-  setupEventListeners();
+  if (fileInput) {
+    fileInput.addEventListener('change', handleFileSelect);
+  }
+
+  // Sample data
+  document.getElementById('load-sample-btn')?.addEventListener('click', loadSampleData);
+
+  // Reset
+  document.getElementById('reset-btn')?.addEventListener('click', resetUpload);
+
+  // Manual calculator
+  document.getElementById('manual-calculate-btn')?.addEventListener('click', calculateManual);
 
   // Mobile nav toggle
   const navToggle = document.querySelector('.nav-toggle');
@@ -41,260 +54,432 @@ document.addEventListener('DOMContentLoaded', () => {
       navMobile.classList.toggle('open');
     });
   }
-});
-
-function setupEventListeners() {
-  // OpenAI connect
-  document.getElementById('openai-connect-btn')?.addEventListener('click', () => {
-    connectProvider('openai');
-  });
-
-  // Anthropic connect
-  document.getElementById('anthropic-connect-btn')?.addEventListener('click', () => {
-    connectProvider('anthropic');
-  });
-
-  // Sync buttons
-  document.getElementById('openai-sync-btn')?.addEventListener('click', () => {
-    syncProvider('openai');
-  });
-  document.getElementById('anthropic-sync-btn')?.addEventListener('click', () => {
-    syncProvider('anthropic');
-  });
-  document.getElementById('sync-all-btn')?.addEventListener('click', syncAll);
-
-  // Export
-  document.getElementById('export-btn')?.addEventListener('click', exportReport);
-
-  // Share benchmarks toggle
-  document.getElementById('share-benchmarks')?.addEventListener('change', toggleBenchmarkSharing);
 }
 
 // ============================================
-// Provider Connection
+// Market Rate
 // ============================================
 
-async function connectProvider(provider) {
-  const keyInput = document.getElementById(`${provider}-key`);
-  const connectBtn = document.getElementById(`${provider}-connect-btn`);
-  const apiKey = keyInput?.value?.trim();
-
-  if (!apiKey) {
-    showError(`Please enter your ${provider} Admin API key`);
-    return;
-  }
-
-  // Validate key format
-  if (provider === 'openai' && !apiKey.startsWith('sk-admin-')) {
-    showError('OpenAI Admin key should start with sk-admin-');
-    return;
-  }
-  if (provider === 'anthropic' && !apiKey.startsWith('sk-ant-admin-')) {
-    showError('Anthropic Admin key should start with sk-ant-admin-');
-    return;
-  }
-
-  // Show loading state
-  const originalText = connectBtn.textContent;
-  connectBtn.textContent = 'Connecting...';
-  connectBtn.disabled = true;
-
+async function fetchMarketRate() {
   try {
-    const response = await fetch(`/api/v1/enterprise/connect/${provider}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ admin_api_key: apiKey }),
+    const response = await fetch('/v1/index/latest');
+    if (!response.ok) throw new Error('Failed to fetch market rate');
+
+    const data = await response.json();
+    // Find STCI-FRONTIER in the indices
+    const frontier = data.indices?.find(idx => idx.index_name === 'STCI-FRONTIER');
+    if (frontier) {
+      state.marketRate = frontier.blended_rate;
+      document.getElementById('market-rate').textContent = `$${state.marketRate.toFixed(2)}`;
+    }
+  } catch (error) {
+    console.error('Failed to fetch market rate:', error);
+    document.getElementById('market-rate').textContent = 'Unavailable';
+  }
+}
+
+// ============================================
+// Drag & Drop
+// ============================================
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.remove('drag-over');
+
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    processFile(files[0]);
+  }
+}
+
+function handleFileSelect(e) {
+  const files = e.target.files;
+  if (files.length > 0) {
+    processFile(files[0]);
+  }
+}
+
+// ============================================
+// CSV Processing
+// ============================================
+
+function processFile(file) {
+  if (!file.name.endsWith('.csv')) {
+    showError('Please upload a CSV file');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const csv = e.target.result;
+      const parsed = parseCSV(csv);
+      state.parsedData = parsed;
+      displayResults(parsed);
+    } catch (error) {
+      showError(error.message);
+    }
+  };
+  reader.onerror = () => showError('Failed to read file');
+  reader.readAsText(file);
+}
+
+function parseCSV(csvText) {
+  const lines = csvText.trim().split('\n');
+  if (lines.length < 2) {
+    throw new Error('CSV file appears to be empty');
+  }
+
+  const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+
+  // Detect provider based on columns
+  const provider = detectProvider(headers);
+  if (!provider) {
+    throw new Error('Unrecognized CSV format. Expected OpenAI or Anthropic usage export.');
+  }
+
+  // Parse rows
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const values = parseCSVLine(line);
+    const row = {};
+    headers.forEach((h, idx) => {
+      row[h] = values[idx] || '';
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Connection failed');
-    }
-
-    // Store enterprise ID
-    enterpriseState.enterpriseId = data.enterprise_id;
-    localStorage.setItem('enterpriseId', data.enterprise_id);
-
-    // Update UI
-    showProviderConnected(provider);
-    updateEnterpriseIdDisplay();
-
-    // Clear the input
-    keyInput.value = '';
-
-    // Load dashboard if this is first connection
-    loadDashboard();
-
-  } catch (error) {
-    showError(error.message);
-  } finally {
-    connectBtn.textContent = originalText;
-    connectBtn.disabled = false;
-  }
-}
-
-function showProviderConnected(provider) {
-  const form = document.getElementById(`${provider}-form`);
-  const connected = document.getElementById(`${provider}-connected`);
-  const status = document.getElementById(`${provider}-status`);
-
-  if (form) form.style.display = 'none';
-  if (connected) connected.style.display = 'flex';
-  if (status) {
-    status.textContent = 'Connected';
-    status.classList.add('connected');
+    rows.push(row);
   }
 
-  enterpriseState.providers[provider] = { connected: true };
-}
-
-function updateEnterpriseIdDisplay() {
-  if (enterpriseState.enterpriseId) {
-    enterpriseIdSection.style.display = 'block';
-    document.getElementById('enterprise-id-display').textContent = enterpriseState.enterpriseId;
-  }
-}
-
-// ============================================
-// Dashboard Loading
-// ============================================
-
-async function loadDashboard() {
-  if (!enterpriseState.enterpriseId) return;
-
-  try {
-    // Load providers
-    await loadProviders();
-
-    // Load usage data
-    await loadUsage();
-
-    // Load benchmarks
-    await loadBenchmarks();
-
-    // Show dashboard
-    dashboardSection.style.display = 'block';
-    updateEnterpriseIdDisplay();
-
-  } catch (error) {
-    console.error('Failed to load dashboard:', error);
-  }
-}
-
-async function loadProviders() {
-  try {
-    const response = await fetch('/api/v1/enterprise/providers', {
-      headers: {
-        'Authorization': `Bearer enterprise_${enterpriseState.enterpriseId}`,
-      },
-    });
-
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 404) {
-        // Enterprise not found, clear state
-        localStorage.removeItem('enterpriseId');
-        enterpriseState.enterpriseId = null;
-        return;
-      }
-      throw new Error('Failed to load providers');
-    }
-
-    const data = await response.json();
-
-    for (const provider of data.providers) {
-      showProviderConnected(provider.provider);
-    }
-
-  } catch (error) {
-    console.error('Failed to load providers:', error);
-  }
-}
-
-async function loadUsage() {
-  try {
-    // Get current month date range
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-    const startStr = start.toISOString().split('T')[0];
-    const endStr = end.toISOString().split('T')[0];
-
-    const response = await fetch(
-      `/api/v1/enterprise/usage?start=${startStr}&end=${endStr}`,
-      {
-        headers: {
-          'Authorization': `Bearer enterprise_${enterpriseState.enterpriseId}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to load usage');
-    }
-
-    const data = await response.json();
-    enterpriseState.usage = data;
-
-    // Update UI
-    updateUsageDisplay(data);
-
-  } catch (error) {
-    console.error('Failed to load usage:', error);
-  }
-}
-
-function updateUsageDisplay(data) {
-  // Effective rate
-  const yourRate = data.effective_rates?.blended;
-  document.getElementById('your-rate').textContent = yourRate
-    ? `$${yourRate.toFixed(2)}`
-    : '--';
-
-  // Market rate
-  const marketRate = data.benchmark?.stci_frontier_blended;
-  document.getElementById('market-rate').textContent = marketRate
-    ? `$${marketRate.toFixed(2)}`
-    : '--';
-
-  // Discount
-  const discount = data.benchmark?.your_discount;
-  const discountBadge = document.getElementById('discount-badge');
-  if (discount && discount > 0) {
-    discountBadge.textContent = `${(discount * 100).toFixed(0)}% below market`;
-    discountBadge.classList.add('positive');
-  } else if (discount && discount < 0) {
-    discountBadge.textContent = `${Math.abs(discount * 100).toFixed(0)}% above market`;
-    discountBadge.classList.add('negative');
+  // Process based on provider
+  if (provider === 'openai') {
+    return processOpenAIData(rows);
   } else {
-    discountBadge.textContent = 'No comparison available';
+    return processAnthropicData(rows);
   }
+}
+
+function parseCSVLine(line) {
+  // RFC 4180 compliant CSV parsing with escaped quote handling
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  let i = 0;
+
+  while (i < line.length) {
+    const char = line[i];
+
+    if (inQuotes) {
+      if (char === '"') {
+        // Check for escaped quote ("")
+        if (i + 1 < line.length && line[i + 1] === '"') {
+          current += '"';
+          i += 2;
+          continue;
+        } else {
+          // End of quoted field
+          inQuotes = false;
+          i++;
+          continue;
+        }
+      } else {
+        current += char;
+      }
+    } else {
+      if (char === '"') {
+        // Start of quoted field
+        inQuotes = true;
+      } else if (char === ',') {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    i++;
+  }
+  result.push(current.trim());
+  return result;
+}
+
+function detectProvider(headers) {
+  // OpenAI columns (typical export)
+  // date, model, usage_type, input_tokens, output_tokens, cost
+  // or: timestamp, model, context_tokens, generated_tokens, total_cost
+  const openaiIndicators = ['cost', 'usage_type', 'context_tokens', 'generated_tokens'];
+  const hasOpenAI = openaiIndicators.some(col => headers.includes(col));
+
+  // Anthropic columns (typical export)
+  // date, model, input_tokens, output_tokens, total_cost
+  // or: timestamp, model_id, input_tokens, output_tokens, cost_usd
+  const anthropicIndicators = ['total_cost', 'cost_usd', 'model_id'];
+  const hasAnthropic = anthropicIndicators.some(col => headers.includes(col));
+
+  // Check for common patterns
+  if (hasOpenAI && !hasAnthropic) return 'openai';
+  if (hasAnthropic && !hasOpenAI) return 'anthropic';
+
+  // Fallback: check for model names in data
+  // Both have input_tokens and output_tokens, so check column names
+  if (headers.includes('context_tokens') || headers.includes('generated_tokens')) {
+    return 'openai';
+  }
+
+  // If we have the basic columns, assume generic format
+  if (headers.includes('input_tokens') && headers.includes('output_tokens')) {
+    // Check cost column naming
+    if (headers.includes('cost') || headers.includes('total_cost')) {
+      return 'openai'; // Default to OpenAI-like processing
+    }
+  }
+
+  return null;
+}
+
+function processOpenAIData(rows) {
+  const byModel = {};
+  let totalInput = 0;
+  let totalOutput = 0;
+  let totalCost = 0;
+
+  for (const row of rows) {
+    const model = row.model || row.model_id || 'unknown';
+    const inputTokens = parseNumber(row.input_tokens || row.context_tokens || row.prompt_tokens);
+    const outputTokens = parseNumber(row.output_tokens || row.generated_tokens || row.completion_tokens);
+    const cost = parseNumber(row.cost || row.total_cost || row.cost_usd);
+
+    totalInput += inputTokens;
+    totalOutput += outputTokens;
+    totalCost += cost;
+
+    if (!byModel[model]) {
+      byModel[model] = { inputTokens: 0, outputTokens: 0, cost: 0 };
+    }
+    byModel[model].inputTokens += inputTokens;
+    byModel[model].outputTokens += outputTokens;
+    byModel[model].cost += cost;
+  }
+
+  return {
+    provider: 'OpenAI',
+    totalInput,
+    totalOutput,
+    totalCost,
+    byModel,
+    effectiveRate: calculateEffectiveRate(totalInput, totalOutput, totalCost),
+  };
+}
+
+function processAnthropicData(rows) {
+  const byModel = {};
+  let totalInput = 0;
+  let totalOutput = 0;
+  let totalCost = 0;
+
+  for (const row of rows) {
+    const model = row.model || row.model_id || 'unknown';
+    const inputTokens = parseNumber(row.input_tokens);
+    const outputTokens = parseNumber(row.output_tokens);
+    const cost = parseNumber(row.total_cost || row.cost_usd || row.cost);
+
+    totalInput += inputTokens;
+    totalOutput += outputTokens;
+    totalCost += cost;
+
+    if (!byModel[model]) {
+      byModel[model] = { inputTokens: 0, outputTokens: 0, cost: 0 };
+    }
+    byModel[model].inputTokens += inputTokens;
+    byModel[model].outputTokens += outputTokens;
+    byModel[model].cost += cost;
+  }
+
+  return {
+    provider: 'Anthropic',
+    totalInput,
+    totalOutput,
+    totalCost,
+    byModel,
+    effectiveRate: calculateEffectiveRate(totalInput, totalOutput, totalCost),
+  };
+}
+
+function parseNumber(val) {
+  if (val === undefined || val === null || val === '') return 0;
+  const num = parseFloat(String(val).replace(/[,$]/g, ''));
+  return isNaN(num) ? 0 : num;
+}
+
+function calculateEffectiveRate(inputTokens, outputTokens, totalCost) {
+  // Blended tokens = input + (output * OUTPUT_WEIGHT)
+  const blendedTokens = inputTokens + (outputTokens * OUTPUT_WEIGHT);
+  if (blendedTokens === 0) return 0;
+  // Rate per 1M tokens
+  return (totalCost / blendedTokens) * 1_000_000;
+}
+
+// ============================================
+// Display Results
+// ============================================
+
+function displayResults(data) {
+  // Hide upload section, show results
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('results-section').style.display = 'block';
+
+  // Your rate
+  document.getElementById('your-rate').textContent = `$${data.effectiveRate.toFixed(2)}`;
+
+  // Discount/premium badge
+  updateDiscountBadge(data.effectiveRate);
 
   // Stats
-  document.getElementById('month-spend').textContent = data.totals?.total_cost_usd
-    ? `$${data.totals.total_cost_usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : '$0.00';
+  document.getElementById('total-spend').textContent = formatCurrency(data.totalCost);
+  document.getElementById('input-tokens').textContent = formatTokens(data.totalInput);
+  document.getElementById('output-tokens').textContent = formatTokens(data.totalOutput);
+  document.getElementById('detected-provider').textContent = data.provider;
 
-  document.getElementById('input-tokens').textContent = data.totals?.input_tokens
-    ? formatTokens(data.totals.input_tokens)
-    : '0';
+  // Model breakdown table
+  renderModelTable(data.byModel);
 
-  document.getElementById('output-tokens').textContent = data.totals?.output_tokens
-    ? formatTokens(data.totals.output_tokens)
-    : '0';
+  // Scroll to results
+  document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
+}
 
-  document.getElementById('request-count').textContent = data.totals?.request_count
-    ? data.totals.request_count.toLocaleString()
-    : '0';
+function updateDiscountBadge(yourRate) {
+  const badge = document.getElementById('discount-badge');
 
-  // Chart
-  if (data.by_day && data.by_day.length > 0) {
-    renderUsageChart(data.by_day);
+  if (!state.marketRate) {
+    badge.textContent = 'Market rate unavailable';
+    badge.className = 'discount-badge';
+    return;
+  }
+
+  const diff = ((state.marketRate - yourRate) / state.marketRate) * 100;
+
+  if (diff > 0) {
+    badge.textContent = `${diff.toFixed(0)}% below market`;
+    badge.className = 'discount-badge positive';
+  } else if (diff < 0) {
+    badge.textContent = `${Math.abs(diff).toFixed(0)}% above market`;
+    badge.className = 'discount-badge negative';
+  } else {
+    badge.textContent = 'At market rate';
+    badge.className = 'discount-badge';
   }
 }
+
+function renderModelTable(byModel) {
+  const tbody = document.getElementById('model-table-body');
+  tbody.innerHTML = '';
+
+  const models = Object.entries(byModel).sort((a, b) => b[1].cost - a[1].cost);
+
+  for (const [model, data] of models) {
+    const rate = calculateEffectiveRate(data.inputTokens, data.outputTokens, data.cost);
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${escapeHtml(model)}</td>
+      <td>${formatTokens(data.inputTokens)}</td>
+      <td>${formatTokens(data.outputTokens)}</td>
+      <td>${formatCurrency(data.cost)}</td>
+      <td>$${rate.toFixed(2)}/1M</td>
+    `;
+    tbody.appendChild(row);
+  }
+}
+
+// ============================================
+// Manual Calculator
+// ============================================
+
+function calculateManual() {
+  const inputTokens = parseNumber(document.getElementById('manual-input-tokens').value);
+  const outputTokens = parseNumber(document.getElementById('manual-output-tokens').value);
+  const spend = parseNumber(document.getElementById('manual-spend').value);
+
+  if (inputTokens === 0 && outputTokens === 0) {
+    showError('Please enter token counts');
+    return;
+  }
+  if (spend === 0) {
+    showError('Please enter your total spend');
+    return;
+  }
+
+  const rate = calculateEffectiveRate(inputTokens, outputTokens, spend);
+
+  // Show result
+  const resultDiv = document.getElementById('manual-result');
+  resultDiv.style.display = 'block';
+  document.getElementById('manual-rate-value').textContent = `$${rate.toFixed(2)}`;
+
+  // Comparison
+  const comparisonDiv = document.getElementById('manual-comparison');
+  if (state.marketRate) {
+    const diff = ((state.marketRate - rate) / state.marketRate) * 100;
+    if (diff > 0) {
+      comparisonDiv.innerHTML = `<span class="comparison-positive">${diff.toFixed(0)}% below STCI-FRONTIER ($${state.marketRate.toFixed(2)})</span>`;
+    } else if (diff < 0) {
+      comparisonDiv.innerHTML = `<span class="comparison-negative">${Math.abs(diff).toFixed(0)}% above STCI-FRONTIER ($${state.marketRate.toFixed(2)})</span>`;
+    } else {
+      comparisonDiv.innerHTML = `<span>At STCI-FRONTIER market rate ($${state.marketRate.toFixed(2)})</span>`;
+    }
+  } else {
+    comparisonDiv.innerHTML = '<span>Market rate unavailable for comparison</span>';
+  }
+}
+
+// ============================================
+// Sample Data
+// ============================================
+
+async function loadSampleData() {
+  try {
+    const response = await fetch('/samples/openai-usage-sample.csv');
+    if (!response.ok) throw new Error('Could not load sample data.');
+    const csvText = await response.text();
+    const parsed = parseCSV(csvText);
+    // Override provider name for clarity in the UI
+    parsed.provider = 'Sample Data';
+    state.parsedData = parsed;
+    displayResults(parsed);
+  } catch (error) {
+    showError(error.message);
+  }
+}
+
+// ============================================
+// Reset
+// ============================================
+
+function resetUpload() {
+  state.parsedData = null;
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('upload-section').style.display = 'block';
+  document.getElementById('file-input').value = '';
+
+  // Scroll back to upload
+  document.getElementById('upload-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ============================================
+// Utilities
+// ============================================
 
 function formatTokens(tokens) {
   if (tokens >= 1_000_000_000) {
@@ -304,265 +489,48 @@ function formatTokens(tokens) {
   } else if (tokens >= 1_000) {
     return (tokens / 1_000).toFixed(1) + 'K';
   }
-  return tokens.toString();
+  return tokens.toLocaleString();
 }
 
-function renderUsageChart(byDay) {
-  const ctx = document.getElementById('usage-chart')?.getContext('2d');
-  if (!ctx) return;
-
-  // Destroy existing chart
-  if (enterpriseState.usageChart) {
-    enterpriseState.usageChart.destroy();
-  }
-
-  const labels = byDay.map(d => d.date);
-  const inputData = byDay.map(d => d.input_tokens / 1_000_000);
-  const outputData = byDay.map(d => d.output_tokens / 1_000_000);
-  const costData = byDay.map(d => d.cost_usd);
-
-  enterpriseState.usageChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Input Tokens (M)',
-          data: inputData,
-          backgroundColor: 'rgba(16, 185, 129, 0.7)',
-          yAxisID: 'y',
-        },
-        {
-          label: 'Output Tokens (M)',
-          data: outputData,
-          backgroundColor: 'rgba(59, 130, 246, 0.7)',
-          yAxisID: 'y',
-        },
-        {
-          label: 'Cost ($)',
-          data: costData,
-          type: 'line',
-          borderColor: 'rgba(139, 92, 246, 1)',
-          backgroundColor: 'rgba(139, 92, 246, 0.1)',
-          yAxisID: 'y1',
-          tension: 0.3,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: 'index',
-        intersect: false,
-      },
-      scales: {
-        x: {
-          grid: { color: 'rgba(255,255,255,0.1)' },
-          ticks: { color: '#a0a0a0' },
-        },
-        y: {
-          type: 'linear',
-          position: 'left',
-          grid: { color: 'rgba(255,255,255,0.1)' },
-          ticks: { color: '#a0a0a0' },
-          title: {
-            display: true,
-            text: 'Tokens (M)',
-            color: '#a0a0a0',
-          },
-        },
-        y1: {
-          type: 'linear',
-          position: 'right',
-          grid: { drawOnChartArea: false },
-          ticks: { color: '#a0a0a0' },
-          title: {
-            display: true,
-            text: 'Cost ($)',
-            color: '#a0a0a0',
-          },
-        },
-      },
-      plugins: {
-        legend: {
-          labels: { color: '#a0a0a0' },
-        },
-      },
-    },
+function formatCurrency(amount) {
+  return '$' + amount.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 }
 
-// ============================================
-// Benchmarks
-// ============================================
-
-async function loadBenchmarks() {
-  try {
-    const response = await fetch('/api/v1/benchmarks/current', {
-      headers: {
-        'Authorization': `Bearer enterprise_${enterpriseState.enterpriseId}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to load benchmarks');
-    }
-
-    const data = await response.json();
-    enterpriseState.benchmark = data;
-
-    updateBenchmarkDisplay(data);
-
-  } catch (error) {
-    console.error('Failed to load benchmarks:', error);
-  }
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
-function updateBenchmarkDisplay(data) {
-  const resultEl = document.getElementById('benchmark-result');
-  const markerEl = document.getElementById('your-marker');
-
-  if (data.your_position) {
-    const percentile = data.your_position.percentile;
-    resultEl.innerHTML = `Your rate is better than <strong>${percentile}%</strong> of enterprises`;
-
-    // Position marker (0% = left/best, 100% = right/worst)
-    // percentile 90 means better than 90%, so marker at 10%
-    const markerPosition = 100 - percentile;
-    markerEl.style.left = `${markerPosition}%`;
-    markerEl.style.display = 'block';
-  } else {
-    resultEl.innerHTML = 'Connect a provider and sync data to see your benchmark position.';
-    markerEl.style.display = 'none';
-  }
+function showError(message) {
+  showToast(message, 'error');
 }
 
-function toggleBenchmarkSharing() {
-  // TODO: Implement opt-in for anonymous benchmarks
-  const checkbox = document.getElementById('share-benchmarks');
-  console.log('Benchmark sharing:', checkbox.checked);
-}
-
-// ============================================
-// Sync
-// ============================================
-
-async function syncProvider(provider) {
-  const syncBtn = document.getElementById(`${provider}-sync-btn`);
-  if (!syncBtn) return;
-
-  const originalText = syncBtn.textContent;
-  syncBtn.textContent = 'Syncing...';
-  syncBtn.disabled = true;
-
-  try {
-    const response = await fetch('/api/v1/enterprise/sync', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer enterprise_${enterpriseState.enterpriseId}`,
-      },
-      body: JSON.stringify({}),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Sync failed');
-    }
-
-    showSuccess(`Synced! Processed ${formatTokens(data.totals.input_tokens + data.totals.output_tokens)} tokens.`);
-
-    // Reload usage data
-    await loadUsage();
-
-  } catch (error) {
-    showError(error.message);
-  } finally {
-    syncBtn.textContent = originalText;
-    syncBtn.disabled = false;
-  }
-}
-
-async function syncAll() {
-  const syncBtn = document.getElementById('sync-all-btn');
-  if (!syncBtn) return;
-
-  const originalText = syncBtn.textContent;
-  syncBtn.textContent = 'Syncing...';
-  syncBtn.disabled = true;
-
-  try {
-    const response = await fetch('/api/v1/enterprise/sync', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer enterprise_${enterpriseState.enterpriseId}`,
-      },
-      body: JSON.stringify({}),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Sync failed');
-    }
-
-    showSuccess('All providers synced successfully!');
-
-    // Reload dashboard
-    await loadUsage();
-    await loadBenchmarks();
-
-  } catch (error) {
-    showError(error.message);
-  } finally {
-    syncBtn.textContent = originalText;
-    syncBtn.disabled = false;
-  }
-}
-
-// ============================================
-// Export
-// ============================================
-
-function exportReport() {
-  if (!enterpriseState.usage) {
-    showError('No usage data to export');
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) {
+    // Fallback to alert if container doesn't exist
+    alert(message);
     return;
   }
 
-  const data = enterpriseState.usage;
-  const report = {
-    generated_at: new Date().toISOString(),
-    enterprise_id: enterpriseState.enterpriseId,
-    period: data.period,
-    totals: data.totals,
-    effective_rates: data.effective_rates,
-    benchmark: data.benchmark,
-    daily_breakdown: data.by_day,
-  };
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
 
-  const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `usage-report-${data.period.start}-${data.period.end}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+  container.appendChild(toast);
 
-// ============================================
-// UI Helpers
-// ============================================
+  // Trigger animation
+  requestAnimationFrame(() => {
+    toast.classList.add('toast-visible');
+  });
 
-function showError(message) {
-  // Simple alert for now, could be replaced with a toast
-  alert(`Error: ${message}`);
-}
-
-function showSuccess(message) {
-  // Simple alert for now, could be replaced with a toast
-  alert(message);
+  // Auto-dismiss after 5 seconds
+  setTimeout(() => {
+    toast.classList.remove('toast-visible');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
 }
