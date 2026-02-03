@@ -1,0 +1,41 @@
+{
+  "date": "2026-02-03",
+  "indices": {
+    "STCI-ALL": {
+      "input_rate": 3.51,
+      "output_rate": 15.78,
+      "blended_rate": 12.71,
+      "model_count": 23,
+      "models_included": [
+        "openai/gpt-4o",
+        "openai/gpt-4o-mini",
+        "openai/gpt-4-turbo",
+        "openai/o1",
+        "openai/o1-mini",
+        "openai/o3-mini",
+        "openai/gpt-3.5-turbo",
+        "anthropic/claude-opus-4",
+        "anthropic/claude-opus-4.5",
+        "anthropic/claude-sonnet-4",
+        "anthropic/claude-sonnet-4.5",
+        "anthropic/claude-haiku-4",
+        "anthropic/claude-haiku-4.5",
+        "anthropic/claude-3.5-sonnet",
+        "anthropic/claude-3-opus",
+        "anthropic/claude-3-haiku",
+        "google/gemini-2.0-flash",
+        "google/gemini-2.0-flash-lite",
+        "google/gemini-2.5-pro",
+        "google/gemini-2.5-flash",
+        "google/gemini-1.5-pro",
+        "google/gemini-1.5-flash",
+        "google/gemini-1.5-flash-8b"
+      ],
+      "dispersion": 5.07
+    }
+  },
+  "methodology_version": "1.0.0",
+  "computed_at": "2026-02-03T03:19:05.152455Z",
+  "verification_hash": "b2cb28e69682b554",
+  "observation_count": 23
+}
