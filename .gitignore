@@ -86,3 +86,7 @@ lighthouse-report*.html
 lighthouse-report*.json
 test-results/
 playwright-report/
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db
