@@ -4,6 +4,8 @@
 [![Tests](https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index/actions/workflows/tests.yml/badge.svg)](https://github.com/intent-solutions-io/stci-standard-llm-token-cost-index/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U5S225PTME)
+
 **A public, vendor-neutral price index for LLM tokens.**
 
 STCI provides a transparent, reproducible reference rate for large language model token pricing, analogous to market indices like LIBOR or VIX. It aggregates published pricing from major model providers and aggregators, normalizes the data into a canonical schema, and computes daily reference rates with full provenance.
